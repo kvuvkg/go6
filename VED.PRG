@@ -5,18 +5,15 @@ Function VedRas()
 Local cLine := sset[112][2], Arr_Shet, Arr_Chet, i, j, nLastRec,;
       nSumma, nRecno, nPos, Pos_Skk, oFile, dDataRas, Itog
 Private nPage := 0, nLine := 60
-      
+
 S_FileDel(cLine+"Work.*")
 Arr_Shet := { {"Ent",  "N",04,00},;   // код организации
               {"Tip",  "N",01,00},;   // Тип организации
               {"Naim", "C",30,00},;   // наименование
-              {"SND",  "N",13,02},;   // сальдо на начало ДЕБЕТ
-              {"SNK",  "N",13,02},;   // сальдо на начало КРЕДИТ
+              {"SN",   "N",13,02},;   // сальдо на начало
               {"ITK",  "N",13,02},;   // ИТОГО по КРЕДИТУ
               {"ITD",  "N",13,02},;   // ИТОГО по КРЕДИТУ
-              {"SKD",  "N",13,02},;   // сальдо на конец ДЕБЕТ
-              {"SKK",  "N",13,02},;   // сальдо на конец КРЕДИТ
-              {"Summa","N",13,02} }
+              {"SK",   "N",13,02} }   // сальдо на конец
 Pos_Sdd := Len(Arr_Shet) + 1
 for i := 1 to 10
   aadd(Arr_Shet,{"D"+alltrim(str(i,2)),"N",13,02}) // дебетовые счета
@@ -45,9 +42,8 @@ While ( !Ostatok->(eof()) )
   Work->Ent := Ostatok->Ent
   Work->Tip  := S_Ent->Tip
   Work->Naim := S_Ent->Naim
-  Work->Snd  := if(Ostatok->Summa>=0,Ostatok->Summa,0)
-  Work->Snk  := if(Ostatok->Summa<0,-Ostatok->Summa,0)
-  Work->Summa:= Ostatok->Summa
+  Work->Sn   := Ostatok->Summa
+  Work->Sk   := Ostatok->Summa
   S_Line_N(18,04,65,nLastRec,++nRecno)
   Ostatok->(DbSkip(1))
 End
@@ -71,7 +67,7 @@ While ( !Prixod->(eof()) )
   i := Work->(Pos_Skk + nPos )
   nSumma := Work->(FieldGet(i))
   Work->(FieldPut(i,nSumma+Prixod->Summa))
-  Work->Summa += Prixod->Summa
+  Work->Sk += Prixod->Summa
   S_Line_N(18,04,65,nLastRec,++nRecno)
   Prixod->(Dbskip(1))
 End
@@ -95,7 +91,7 @@ While ( !Rasxod->(eof()) )
   i := Work->(Pos_Sdd + nPos )
   nSumma := Work->(FieldGet(i))
   Work->(FieldPut(i,nSumma+Rasxod->Summa))
-  Work->Summa -= Rasxod->Summa
+  Work->Sk -= Rasxod->Summa
   S_Line_N(18,04,65,nLastRec,++nRecno)
   Rasxod->(Dbskip(1))
 End
@@ -132,16 +128,11 @@ While ( !Work->(eof()) )
   For i := 1 to nPos_kk
      nKredit += Work->(FieldGet( Pos_Skk + Akk_Shet[i][2] ))
   next
-  nSumma := ( -Work->Snk + Work->Snd ) + ( nDebet - nKredit )
   Work->Itk  := nKredit
   Work->Itd  := nDebet
-//  Work->Skd  := if(nSumma>=0,nSumma,0)
-//  Work->Skk  := if(nSumma<0,-nSumma,0)
-  Work->Skd  := if(Work->Summa>=0,Work->Summa,0)
-  Work->Skk  := if(Work->Summa<0,-Work->Summa,0)
   OstNew->(DbAppend())
-  OstNew->Ent   := Work->Ent 
-  OstNew->Summa := Work->Summa
+  OstNew->Ent   := Work->Ent
+  OstNew->Summa := Work->Sk
   S_Line_N(18,04,65,nLastRec,++nRecno)
   Work->(Dbskip(1))
 End
@@ -150,30 +141,28 @@ S_FileDel(sset[112][2]+"p*.ved")
 Add_Shet := aSort(Add_Shet,,,{|x,y| x[1]<y[1] })
 Akk_Shet := aSort(Akk_Shet,,,{|x,y| x[1]<y[1] })
 Arr_Chet := { ;
- { {|x| Work->Naim },{|x| 0 },2,{":"+space(30),":"+padc("Организация",30)} },;
- { {|x| str(Work->SnD,13,2) },{|x| Work->SnD },3,{":сальдо на нач",":  дебет      "} },;
- { {|x| str(Work->SnK,13,2) },{|x| Work->SnK },4,{"ало  месяца   ",":  кредит     "} } ;
+ { {|x| Work->Naim },{|x| 0 },3,{":"+space(30),":"+padc("Организация",30)} },;
+ { {|x| str(Work->Sn,13,2) },{|x| Work->Sn },4,{"Сальдо на нача",":ло месяца    "} } ;
              }
 for i := 1 to nPos_kk // Кредит
  j := Pos_Skk + Akk_Shet[i][2]  // номер реквизита
- nSumma := ":"+padc(str(Akk_Shet[i][1],5,2),13)
+ nSumma := ":"+padc(str(Akk_Shet[i][1],4,0),13)
  aadd(Arr_Chet,{ {|x| str(Work->(FieldGet(x)),13,2) },;
                  {|x| Work->(FieldGet(x)) },j,{ ":"+space(13),nSumma } } )
 next
 aadd(Arr_Chet,{ {|x| str(Work->Itk,13,2) },{|x| Work->Itk },5,{":  итого      ",": по приходу  "} } )
 for i := 1 to nPos_dd // Дебет
  j := Pos_Sdd + Add_Shet[i][2]  // номер реквизита
- nSumma := ":"+padc(str(Add_Shet[i][1],5,2),13)
+ nSumma := ":"+padc(str(Add_Shet[i][1],4,0),13)
  aadd(Arr_Chet,{ {|x| str(Work->(FieldGet(x)),13,2) },;
                  {|x| Work->(FieldGet(x)) },j,{ ":"+space(13),nSumma } } )
 next
-aadd(Arr_Chet,{ {|x| str(Work->Itd,13,2) },{|x| Work->Itd },5,{":  итого      ",": по расходу  "} } )
-aadd(Arr_Chet,{ {|x| str(Work->SKD,13,2) },{|x| Work->SKD },9,{":  сальдо на  ",":   дебет     "} } )
-aadd(Arr_Chet,{ {|x| str(Work->SKK,13,2) },{|x| Work->SKK },10,{" конец месяца",":   кредит    "} } )
+aadd(Arr_Chet,{ {|x| str(Work->Itd,13,2) },{|x| Work->Itd },6,{":  итого      ",": по расходу  "} } )
+aadd(Arr_Chet,{ {|x| str(Work->SK,13,2) },{|x| Work->SK },  7,{":сальдо на ко ",":нец месяца   "} } )
 Akk_Shet := Add_Shet := Nil
-nLine :=18  // 8??????????????????????????
+nLine := 300 // 8  // ??????????????????????????
 i := 1
-j := min(nLine, nPos := Len(Arr_Chet) ) 
+j := min(nLine, nPos := Len(Arr_Chet) )
 oFile := {}
 While ( i < nPos )
   aadd(oFile,{Nil,i,j})
@@ -190,7 +179,7 @@ for i := 1 to len(oFile)
 next
 Itog    := array(nPos)
 ItogTip := array(nPos)
-nPos := Len(oFile) 
+nPos := Len(oFile)
 afill(Itog,0)
 //  Печатаем шапку
 oFile[1][1]:WriteLn("   Ведомость расчета с поставщиками за холодную воду и канализацию ")
@@ -221,7 +210,7 @@ While ( !Work->(eof()) )
     TestShapka(oFile,Arr_Chet)
     nnPp++
     for i := 1 to nPos
-      cLine := str(nnPp,3)+" "+str(Work->Ent,3)
+      cLine := str(nnPp,3)+" "+str(Work->Ent,4)
       for j := oFile[i][2] to oFile[i][3]
         nSumma := Arr_Chet[j][3]
         cLine += ( " "+eval(Arr_Chet[j][1],nSumma) )
@@ -241,7 +230,7 @@ While ( !Work->(eof()) )
   for i := 1 to len(oFile)
     cLine := "---"+"-"+"---"
     for j := oFile[i][2] to oFile[i][3]
-      cLine += repl("-",len(Arr_Chet[j][4][1])) 
+      cLine += repl("-",len(Arr_Chet[j][4][1]))
     next
     oFile[i][1]:WriteLn(cLine)
    next
@@ -262,7 +251,7 @@ Itog[1] := space(30)
 for i := 1 to len(oFile)
     cLine := "==="+"="+"==="
     for j := oFile[i][2] to oFile[i][3]
-      cLine += repl("=",len(Arr_Chet[j][4][1])) 
+      cLine += repl("=",len(Arr_Chet[j][4][1]))
     next
     oFile[i][1]:WriteLn(cLine)
 next
@@ -413,8 +402,8 @@ Function VedomPrix()
 Local cFile := sset[112][2]+"Work", nLastRec, nRecno, nTip
 Local fKolvo, fSum, fNdc, fFec, fSumma, tKolvo, tSum, tNdc, tFec, tSumma
 Local fSumBank, tSumBank, cSumBank, cKolvo, cSum, cNdc, cFec, cSumma
-Private nLen := 150, nLine := 0, nPage := 0, nSizePage := 67
-Private cChet, dDataRas, nList := 0
+Private nLen := 150, nStr := nLine := 0, nPage := 0, nSizePage := 67
+Private cChet, dDataRas, nList := 0, Delim := 0
 
 if !Ostatok->(DbSeek(str(0,4)))  ;  return ( Nil ) ; end
 BEGIN SEQUENCE
@@ -424,9 +413,9 @@ ferase(cFile+".Dbf")
 ferase(cFile+".Ntx")
 DbCreate(cFile,{ {"Ent",  "N",04,00},;   // код организации
                  {"Tip",  "N",01,00},;   // Тип организации
-                 {"Chet", "N",04,00},;  
+                 {"Chet", "N",04,00},;
                  {"Kolvo","N",10,00},;
-                 {"Cena", "N",07,03},;
+                 {"Cena", "N",15,06},;
                  {"Sum",  "N",13,02},;
                  {"Ndc",  "N",13,02},;
                  {"Fec",  "N",13,02},;
@@ -434,7 +423,7 @@ DbCreate(cFile,{ {"Ent",  "N",04,00},;   // код организации
                  {"SumBank","N",13,02},;
                  {"Npp",  "N",05,00}} )
 use (cFile) new alias Work
-Index on str(Chet,5,1)+str(Tip,1)+str(Ent,4) to (cFile)
+Index on str(Chet,4,0)+str(Tip,1)+str(Ent,4) to (cFile)
 nLastRec := Prixod->(LastRec())
 tSumma := "[ Ожидайте...  Формирую рабочую базу ]"
 S_Line_N(18,04,65,nLastRec,1)
@@ -456,7 +445,40 @@ While !Prixod->(eof())
    Work->Summa := Prixod->Summa
    Work->SumBank := Prixod->SumBank
    Work->Npp   := Prixod->Npp
-   S_Line_N(18,04,65,nLastRec,++nRecno)
+  if Work->Tip =1 .and. Work->Chet =7031.and.Work->Ent =7
+    Work->Cena  := 0
+    Work->Sum   := 0
+   Work->Ndc   := 0
+   Work->Fec   := 0
+   Work->Summa := 0
+   Work->SumBank :=0    
+ endif
+ if Work->Tip =1 .and. Work->Chet =7032.and.Work->Ent =7
+    Work->Cena  := 0
+    Work->Sum   := 0
+   Work->Ndc   := 0
+   Work->Fec   := 0
+   Work->Summa := 0
+   Work->SumBank :=0    
+ endif
+if Work->Tip =1 .and. Work->Chet =7031.and.Work->Ent =77
+    Work->Cena  := 0
+    Work->Sum   := 0
+   Work->Ndc   := 0
+   Work->Fec   := 0
+   Work->Summa := 0
+   Work->SumBank :=0    
+ endif
+ if Work->Tip =1 .and. Work->Chet =7032.and.Work->Ent =77
+    Work->Cena  := 0
+    Work->Sum   := 0
+   Work->Ndc   := 0
+   Work->Fec   := 0
+   Work->Summa := 0
+   Work->SumBank :=0    
+ endif
+
+S_Line_N(18,04,65,nLastRec,++nRecno)
    Prixod->(DbSkip(1))
 End
 S_Line_N()
@@ -484,9 +506,9 @@ While !Work->(eof())
     PutPrix( "     Группа N "+str(nTip,1)+" "+S_Gr->Naim )
     While !Work->(eof()) .and. nTip == Work->Tip .and. cChet == Work->Chet
       PutPrix( str(Work->Ent,4)+" "+S_Ent->Naim+" "+;
-        str(Work->Kolvo,15)+" "+str(Work->Cena,7,3)+" "+;
+        str(Work->Kolvo,15)+" "+str(Work->Cena,10,6)+" "+;
         str(Work->Sum,15,2)+" "+str(Work->Ndc,15,2)+" "+str(Work->Fec,15,2)+" "+;
-        str(Work->SumBank,15,2)+" "+;        
+        str(Work->SumBank,15,2)+" "+;
         str(Work->Summa,15,2)+" "+str(Work->Npp,5) )
       tKolvo += Work->Kolvo
       tSum   += Work->Sum
@@ -550,26 +572,382 @@ if nList == 0 .or. nPage == 0 .or. nLine > nSizePage
      @ prow()+1,00 say " "
      nLine := 0
   End
+  if cChet != Delim
+    Delim := cChet
+    nPage := 0
+  end
   nList++
-  @ prow()+1,00 say "No# "+str(++nPage,3)
+  nPage++
+  @ prow()+1,00 say " "
+  @ prow()+1,00 say "Лист# "+str(++nStr,3)
   @ prow()+1,00 say " "
   @ prow()+1,00 say " "
   @ prow()+1,00 say " "
-  @ prow()+1,00 say padc("О Т Ч Е Т",nLen)
-  @ prow()+1,00 say padc("по ПЕРВОМАЙСКОМУ KПУВКХ",nLen)
-  @ prow()+1,00 say padc(" за "+S_cMonth(dDataRas)+" месяц "+str(year(dDataRas),4)+" г.",nLen)
-  @ prow()+1,00 say padc("по счету "+str(cChet,4,0)+" "+S_Chet->Naim,nLen)
-  @ prow()+1,00 say " "
-  @ prow()+1,00 say Repl("-",nLen)
-  @ prow()+1,00 say "      Наименование организации               Количество      Цена          Сумма          Ндс             ФЭС          Услуги             Сумма    "
-  @ prow()+1,00 say "                                                м. куб.                                                                 банка         к предъявлен."
-  @ prow()+1,00 say Repl("-",nLen)
-  nLine += 12
+
+  if nPage == 1
+    @ prow()+1,00 say "                                                                                                                    Утверждаю"
+    @ prow()+1,00 say "                                                                                                                 начальник KПУВКХ"
+    @ prow()+1,00 say padc("О Т Ч Е Т",nLen)
+    @ prow()+1,00 say padc("по ПЕРВОМАЙСКОМУ KПУВКХ",nLen)
+    @ prow()+1,00 say padc(" за "+S_cMonth(dDataRas)+" месяц "+str(year(dDataRas),4)+" г.",nLen)
+    @ prow()+1,00 say padc("по счету "+str(cChet,4,0)+" "+S_Chet->Naim,nLen)
+    @ prow()+1,00 say " "
+    @ prow()+1,00 say Repl("-",nLen)
+    @ prow()+1,00 say "      Наименование организации               Количество      Цена          Сумма          Ндс             ПРС          Услуги             Сумма    "
+    @ prow()+1,00 say "                                                м. куб.                                                                 банка         к предъявлен."
+    @ prow()+1,00 say Repl("-",nLen)
+    nLine += 12
+  end
 End
 @ prow()+1,00 say cLine
 nLine++
 Return ( Nil )
 //////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+// Формирование reectra
+Function VedomPrix1()
+Local cFile := sset[112][2]+"Work", nLastRec, nRecno, nTip
+Local fKolvo, fSum, fNdc, fFec, fSumma, tKolvo, tSum, tNdc, tFec, tSumma
+Local fSumBank, tSumBank, cSumBank, cKolvo, cSum, cNdc, cFec, cSumma
+Private nLen := 150, nStr := nLine := 0, nPage := 0, nSizePage := 67
+Private cChet, dDataRas, nList := 0, Delim := 0
+
+if !Ostatok->(DbSeek(str(0,4)))  ;  return ( Nil ) ; end
+BEGIN SEQUENCE
+tSumma := Alltrim(str(Ostatok->Summa,10))
+dDataRas := ctod(Substr(tSumma,7,2)+"."+Substr(tSumma,5,2)+"."+Substr(tSumma,1,4))
+ferase(cFile+".Dbf")
+ferase(cFile+".Ntx")
+DbCreate(cFile,{ {"Ent",  "N",04,00},;   // код организации
+                 {"Tip",  "N",01,00},;   // Тип организации
+                 {"Chet", "N",04,00},;
+                 {"Kolvo","N",10,00},;
+                 {"Cena", "N",15,06},;
+                 {"Sum",  "N",13,02},;
+                 {"Ndc",  "N",13,02},;
+                 {"Fec",  "N",13,02},;
+                 {"Summa","N",13,02},;
+                 {"SumBank","N",13,02},;
+                 {"Npp",  "N",05,00}} )
+use (cFile) new alias Work
+Index on str(Chet,4,0)+str(Tip,1)+str(Ent,4) to (cFile)
+nLastRec := Prixod->(LastRec())
+tSumma := "[ Ожидайте...  Формирую рабочую базу ]"
+S_Line_N(18,04,65,nLastRec,1)
+@ 00,(MaxCol()-len(tSumma))/2 say tSumma
+nRecno := 0
+DbSelectArea("Prixod")
+Set Relation to str(Ent,4) into S_ENT
+Prixod->(DbGoTop())
+While !Prixod->(eof())
+   Work->(DbAppend())
+   Work->Tip := S_Ent->Tip
+   Work->Ent := Prixod->Ent
+   Work->Chet:= Prixod->Chet
+   Work->Kolvo := Prixod->Kolvo
+   Work->Cena  := Prixod->Cena
+   Work->Sum   := Prixod->Sum
+   Work->Ndc   := Prixod->Ndc
+   Work->Fec   := Prixod->Fec
+   Work->Summa := Prixod->Summa
+   Work->SumBank := Prixod->SumBank
+   Work->Npp   := Prixod->Npp
+   S_Line_N(18,04,65,nLastRec,++nRecno)
+   Prixod->(DbSkip(1))
+End
+S_Line_N()
+Set relation to
+DbSelectArea("Work")
+Set Relation to str(Ent,4) into S_ENT
+nLastRec := Work->(LastRec())
+tSumma := "[ Ожидайте...  Формирую ведомость ]"
+S_Line_N(18,04,65,nLastRec,1)
+@ 00,(MaxCol()-len(tSumma))/2 say tSumma
+Work->(DbGoTop())
+fKolvo := fSum := fNdc := fFec := fSumma := nRecno := fSumBank := 0
+Set(20,"PRINT")
+Set(24,cFile+".Txt")
+While !Work->(eof())
+  cChet := Work->Chet
+  cKolvo := cSum := cNdc := cFec := cSumma := cSumBank := 0
+  S_Chet->(DbSeek(str(cChet,4,0)))
+  nList := 0
+  PutPrix1(" ")
+  While !Work->(eof()) .and. cChet == Work->Chet
+    nTip := Work->Tip
+    tKolvo := tSum := tNdc := tFec := tSumma := tSumBank := 0
+    S_Gr->(DbSeek(str(nTip,1)))
+    PutPrix1( "     Группа N "+str(nTip,1)+" "+S_Gr->Naim )
+    While !Work->(eof()) .and. nTip == Work->Tip .and. cChet == Work->Chet
+      PutPrix( str(Work->Ent,4)+" "+S_Ent->Naim+" "+;
+       str( Work->NPP,5)+":"+ str(Work->Summa,15,2)+":             :                         :         :           :  " )
+      tKolvo += Work->Kolvo
+      tSum   += Work->Sum
+      tNdc   += Work->Ndc
+      tFec   += Work->Fec
+      tSumma += Work->Summa
+      tSumBank += Work->SumBank
+      S_Line_N(18,04,65,nLastRec,++nRecno)
+      Work->(DbSkip(1))
+      PutPrix1( Repl("-",nLen) )
+    End
+    PutPrix1( Repl("-",nLen) )
+  ///  PutPrix1( "     "+padr("Итого по группе ",35)+" "+;
+ ////       str(tKolvo,15)+" "+space(7)+" "+;
+ ////       str(tSum,15,2)+" "+str(tNdc,15,2)+" "+str(tFec,15,2)+" "+;
+ ////       str(tSumBank,15,2)+" "+str(tSumma,15,2) )
+    cKolvo += tKolvo
+    cSum   += tSum
+    cNdc   += tNdc
+    cFec   += tFec
+    cSumma += tSumma
+    cSumBank += tSumBank
+  End
+  PutPrix1( Repl("-",nLen) )
+//  PutPrix1( "     "+padr("Итого по счету ",35)+" "+;
+///        str(cKolvo,15)+" "+space(7)+" "+;
+///        str(cSum,15,2)+" "+str(cNdc,15,2)+" "+str(cFec,15,2)+" "+;
+///        str(tSumBank,15,2)+" "+str(cSumma,15,2) )
+  fKolvo += cKolvo
+  fSum   += cSum
+  fNdc   += cNdc
+  fFec   += cFec
+  fSumma += cSumma
+  fSumBank += cSumBank
+End
+@ prow()+1,00 say Repl("=",nLen)
+@ prow()+1,00 say "     "+padr("ВСЕГО по предприятию",35)+" "+;
+    str(fKolvo,15)+" "+space(7)+" "+;
+    str(fSum,15,2)+" "+str(fNdc,15,2)+" "+str(fFec,15,2)+" "+;
+    str(fSumBank,15,2)+" "+str(fSumma,15,2)
+@ prow()+1,00 say " "
+@ prow()+1,00 say ""
+Set(24,"")
+Set(20,"SCREEN")
+S_Line_N()
+Work->(DbCloseArea())
+ShowPrn(cFile+".Txt"," О Т Ч Е Т ",74)
+END SEQUENCE
+ferase(cFile+".Dbf")
+ferase(cFile+".Ntx")
+ferase(cFile+".Txt")
+Return ( Nil )
+/////////////////////////////////////////////////////////////////////////
+Static Function PutPrix1(cLine)
+Local i
+if nList == 0 .or. nPage == 0 .or. nLine > nSizePage
+  if nLine > nSizePage
+     for i := nLine to nSizePage+3
+        @ prow()+1,00 say " "
+     Next
+     @ prow()+1,00 say repl(".",nLen)
+     @ prow()+1,00 say " "
+     nLine := 0
+  End
+  if cChet != Delim
+    Delim := cChet
+    nPage := 0
+  end
+  nList++
+  nPage++
+  @ prow()+1,00 say " "
+  @ prow()+1,00 say "Лист# "+str(++nStr,3)
+  @ prow()+1,00 say " "
+  @ prow()+1,00 say " "
+  @ prow()+1,00 say " "
+
+  if nPage == 1
+    @ prow()+1,00 say "                                                                                                                    Утверждаю"
+    @ prow()+1,00 say "                                                                                                                 начальник KПУВКХ"
+    @ prow()+1,00 say padc("Р Е Е С Т Р   ",nLen)
+    @ prow()+1,00 say padc("по ПЕРВОМАЙСКОМУ KПУВКХ",nLen)
+    @ prow()+1,00 say padc(" за "+S_cMonth(dDataRas)+" месяц "+str(year(dDataRas),4)+" г.",nLen)
+    @ prow()+1,00 say padc("по счету "+str(cChet,4,0)+" "+S_Chet->Naim,nLen)
+    @ prow()+1,00 say " "
+    @ prow()+1,00 say Repl("-",nLen)
+    @ prow()+1,00 say "      Наименование организации      Докум              Сумма        ДАТА                     Ф И О          Долж     Роспись        "
+    @ prow()+1,00 say "                                                             .   получения                                                                                "
+    @ prow()+1,00 say Repl("-",nLen)
+    nLine += 12
+  end
+End
+@ prow()+1,00 say cLine
+nLine++
+Return ( Nil )
+//////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+// Формирование reectra
+Function VedomPrix2()
+Local cFile := sset[112][2]+"Work", nLastRec, nRecno, nTip
+Local fKolvo, fSum, fNdc, fFec, fSumma, tKolvo, tSum, tNdc, tFec, tSumma
+Local fSumBank, tSumBank, cSumBank, cKolvo, cSum, cNdc, cFec, cSumma
+Private nLen := 150, nStr := nLine := 0, nPage := 0, nSizePage := 67
+Private cChet, dDataRas, nList := 0, Delim := 0
+
+if !Ostatok->(DbSeek(str(0,4)))  ;  return ( Nil ) ; end
+BEGIN SEQUENCE
+tSumma := Alltrim(str(Ostatok->Summa,10))
+dDataRas := ctod(Substr(tSumma,7,2)+"."+Substr(tSumma,5,2)+"."+Substr(tSumma,1,4))
+ferase(cFile+".Dbf")
+ferase(cFile+".Ntx")
+DbCreate(cFile,{ {"Ent",  "N",04,00},;   // код организации
+                 {"Tip",  "N",01,00},;   // Тип организации
+                 {"Chet", "N",04,00},;
+                 {"Kolvo","N",10,00},;
+                 {"Cena", "N",15,06},;
+                 {"Sum",  "N",13,02},;
+                 {"Ndc",  "N",13,02},;
+                 {"Fec",  "N",13,02},;
+                 {"Summa","N",13,02},;
+                 {"SumBank","N",13,02},;
+                 {"Npp",  "N",05,00}} )
+use (cFile) new alias Work
+Index on str(Chet,4,0)+str(Tip,1)+str(Ent,4) to (cFile)
+nLastRec := Prixod->(LastRec())
+tSumma := "[ Ожидайте...  Формирую рабочую базу ]"
+S_Line_N(18,04,65,nLastRec,1)
+@ 00,(MaxCol()-len(tSumma))/2 say tSumma
+nRecno := 0
+DbSelectArea("Prixod")
+Set Relation to str(Ent,4) into S_ENT
+Prixod->(DbGoTop())
+While !Prixod->(eof())
+   Work->(DbAppend())
+   Work->Tip := S_Ent->Tip
+   Work->Ent := Prixod->Ent
+   Work->Chet:= Prixod->Chet
+   Work->Kolvo := Prixod->Kolvo
+   Work->Cena  := Prixod->Cena
+   Work->Sum   := Prixod->Sum
+   Work->Ndc   := Prixod->Ndc
+   Work->Fec   := Prixod->Fec
+   Work->Summa := Prixod->Summa
+   Work->SumBank := Prixod->SumBank
+   Work->Npp   := Prixod->Npp
+   S_Line_N(18,04,65,nLastRec,++nRecno)
+   Prixod->(DbSkip(1))
+End
+S_Line_N()
+Set relation to
+DbSelectArea("Work")
+Set Relation to str(Ent,4) into S_ENT
+nLastRec := Work->(LastRec())
+tSumma := "[ Ожидайте...  Формирую ведомость ]"
+S_Line_N(18,04,65,nLastRec,1)
+@ 00,(MaxCol()-len(tSumma))/2 say tSumma
+Work->(DbGoTop())
+fKolvo := fSum := fNdc := fFec := fSumma := nRecno := fSumBank := 0
+Set(20,"PRINT")
+Set(24,cFile+".Txt")
+While !Work->(eof())
+  cChet := Work->Chet
+  cKolvo := cSum := cNdc := cFec := cSumma := cSumBank := 0
+  S_Chet->(DbSeek(str(cChet,4,0)))
+  nList := 0
+  PutPrix2(" ")
+  While !Work->(eof()) .and. cChet == Work->Chet
+    nTip := Work->Tip
+    tKolvo := tSum := tNdc := tFec := tSumma := tSumBank := 0
+    S_Gr->(DbSeek(str(nTip,1)))
+    PutPrix2( "     Группа N "+str(nTip,1)+" "+S_Gr->Naim )
+    While !Work->(eof()) .and. nTip == Work->Tip .and. cChet == Work->Chet
+      PutPrix2( str(Work->Ent,4)+" "+S_Ent->Naim+" "+;
+     "        :"+ str(Work->Summa,15,2)+":             :                         :         :           :  " )
+      tKolvo += Work->Kolvo
+      tSum   += Work->Sum
+      tNdc   += Work->Ndc
+      tFec   += Work->Fec
+      tSumma += Work->Summa
+      tSumBank += Work->SumBank
+      S_Line_N(18,04,65,nLastRec,++nRecno)
+      Work->(DbSkip(1))
+      PutPrix2( Repl("-",nLen) )
+    End
+    PutPrix2( Repl("-",nLen) )
+  ///  PutPrix1( "     "+padr("Итого по группе ",35)+" "+;
+ ////       str(tKolvo,15)+" "+space(7)+" "+;
+ ////       str(tSum,15,2)+" "+str(tNdc,15,2)+" "+str(tFec,15,2)+" "+;
+ ////       str(tSumBank,15,2)+" "+str(tSumma,15,2) )
+    cKolvo += tKolvo
+    cSum   += tSum
+    cNdc   += tNdc
+    cFec   += tFec
+    cSumma += tSumma
+    cSumBank += tSumBank
+  End
+  PutPrix2( Repl("-",nLen) )
+//  PutPrix1( "     "+padr("Итого по счету ",35)+" "+;
+///        str(cKolvo,15)+" "+space(7)+" "+;
+///        str(cSum,15,2)+" "+str(cNdc,15,2)+" "+str(cFec,15,2)+" "+;
+///        str(tSumBank,15,2)+" "+str(cSumma,15,2) )
+  fKolvo += cKolvo
+  fSum   += cSum
+  fNdc   += cNdc
+  fFec   += cFec
+  fSumma += cSumma
+  fSumBank += cSumBank
+End
+@ prow()+1,00 say Repl("=",nLen)
+@ prow()+1,00 say "     "+padr("ВСЕГО по предприятию",35)+" "+;
+    str(fKolvo,15)+" "+space(7)+" "+;
+    str(fSum,15,2)+" "+str(fNdc,15,2)+" "+str(fFec,15,2)+" "+;
+    str(fSumBank,15,2)+" "+str(fSumma,15,2)
+@ prow()+1,00 say " "
+@ prow()+1,00 say ""
+Set(24,"")
+Set(20,"SCREEN")
+S_Line_N()
+Work->(DbCloseArea())
+ShowPrn(cFile+".Txt"," О Т Ч Е Т ",74)
+END SEQUENCE
+ferase(cFile+".Dbf")
+ferase(cFile+".Ntx")
+ferase(cFile+".Txt")
+Return ( Nil )
+/////////////////////////////////////////////////////////////////////////
+Static Function PutPrix2(cLine)
+Local i
+if nList == 0 .or. nPage == 0 .or. nLine > nSizePage
+  if nLine > nSizePage
+     for i := nLine to nSizePage+3
+        @ prow()+1,00 say " "
+     Next
+     @ prow()+1,00 say repl(".",nLen)
+     @ prow()+1,00 say " "
+     nLine := 0
+  End
+  if cChet != Delim
+    Delim := cChet
+    nPage := 0
+  end
+  nList++
+  nPage++
+  @ prow()+1,00 say " "
+  @ prow()+1,00 say "Лист# "+str(++nStr,3)
+  @ prow()+1,00 say " "
+  @ prow()+1,00 say " "
+  @ prow()+1,00 say " "
+
+  if nPage == 1
+    @ prow()+1,00 say "                                                                                                                    Утверждаю"
+    @ prow()+1,00 say "                                                                                                                 начальник KПУВКХ"
+    @ prow()+1,00 say padc("Р Е Е С Т Р налоговых наклодных   ",nLen)
+    @ prow()+1,00 say padc("по ПЕРВОМАЙСКОМУ KПУВКХ",nLen)
+    @ prow()+1,00 say padc(" за "+S_cMonth(dDataRas)+" месяц "+str(year(dDataRas),4)+" г.",nLen)
+    @ prow()+1,00 say padc("по счету "+str(cChet,4,0)+" "+S_Chet->Naim,nLen)
+    @ prow()+1,00 say " "
+    @ prow()+1,00 say Repl("-",nLen)
+    @ prow()+1,00 say "      Наименование организации      Докум              Сумма        ДАТА                     Ф И О          Долж     Роспись        "
+    @ prow()+1,00 say "                                                             .   получения                                                                                "
+    @ prow()+1,00 say Repl("-",nLen)
+    nLine += 12
+  end
+End
+@ prow()+1,00 say cLine
+nLine++
+Return ( Nil )
+//////////////////////////////////////////////////////////////////////////
+
 // Формирование ведомости по ПРИХОДУ годовая
 Function VedomGod()
 Local cFile := sset[112][2]+"Work", nLastRec, nRecno
@@ -648,7 +1026,7 @@ While !Work->(eof())
   cKol7 := cKol8 := cKol9 := cKol10 := cKol11 := cKol12 := 0
   cSum1 := cSum2 := cSum3 := cSum4  := cSum5  := cSum6  := 0
   cSum7 := cSum8 := cSum9 := cSum10 := cSum11 := cSum12 := 0
-  S_Chet->(DbSeek(str(cChet,5,1)))
+  S_Chet->(DbSeek(str(cChet,4,0)))
   nList := 0
   PutArx(" "," "," "," ")
   While !Work->(eof()) .and. cChet == Work->Chet
@@ -786,7 +1164,7 @@ PutArx( Repl("-",nLen1),Repl("-",nLen2),Repl("-",nLen3),Repl("-",nLen4) )
         str(fKol2,12)+" "+str(fSum2,12,2)+" "+;
         str(fKol3,12)+" "+str(fSum3,12,2)+" "+;
         str(fKol1+fKol2+fKol3,14)+" "+;
-        str(nSum1+fSum2+fSum3,14,2) 
+        str(nSum1+fSum2+fSum3,14,2)
 oFile2:WriteLn("     "+padr("Всего по предприятию",35)+" "+;
                 str(fKol4,12)+" "+str(fSum4,12,2)+" "+;
                 str(fKol5,12)+" "+str(fSum5,12,2)+" "+;
@@ -818,8 +1196,8 @@ Work->(DbCloseArea())
 Arx->(DbCloseArea())
 Set(24,"")
 Set(20,"SCREEN")
-oFile2:WriteLn( " " ) ; oFile3:WriteLn( " " ) ; oFile4:WriteLn( " " ) 
-oFile2:WriteLn( "" )  ; oFile3:WriteLn( "" )  ; oFile4:WriteLn( "" ) 
+oFile2:WriteLn( " " ) ; oFile3:WriteLn( " " ) ; oFile4:WriteLn( " " )
+oFile2:WriteLn( "" )  ; oFile3:WriteLn( "" )  ; oFile4:WriteLn( "" )
 oFile2:Close()        ; oFile3:Close()        ; oFile4:Close()
 ShowPrn(cFile+"1.Txt"," Ведомость за 1 квартал ",74)
 ShowPrn(cFile+"2.Txt"," Ведомость за 2 квартал ",74)
@@ -842,16 +1220,16 @@ if nList == 0 .or. nPage == 0 .or. nLine > nSizePage
         @ prow()+1,00 say " "
         oFile2:WriteLn( " " )
         oFile3:WriteLn( " " )
-        oFile4:WriteLn( " " ) 
+        oFile4:WriteLn( " " )
      Next
      @ prow()+1,00 say repl(".",nLen1)
      oFile2:WriteLn( repl(".",nLen2) )
      oFile3:WriteLn( repl(".",nLen3) )
-     oFile4:WriteLn( repl(".",nLen4) ) 
+     oFile4:WriteLn( repl(".",nLen4) )
      @ prow()+1,00 say " "
      oFile2:WriteLn( " " )
      oFile3:WriteLn( " " )
-     oFile4:WriteLn( " " ) 
+     oFile4:WriteLn( " " )
      nLine := 0
   End
   nList++
@@ -927,3 +1305,387 @@ oFile4:WriteLn( cLine4 )
 nLine++
 Return ( Nil )
 /////////////////////////////////////////////////////////////////////////////
+// Формирование Задолженности
+Function VedDolg()
+Local cLine := sset[112][2], cFile := sset[112][2]+"Kred.txt", dDataRas
+Local nRecno, nLastRec, nSumma, fSumma := 0, nTip, nNpp := 0
+Private nPage := 0, nLine := 60, nLen := 55
+
+
+
+if !Ostatok->(DbSeek(str(0,4)))  ;  return ( Nil ) ; end
+nSumma := Alltrim(str(Ostatok->Summa,10))
+dDataRas := ctod(Substr(nSumma,7,2)+"."+Substr(nSumma,5,2)+"."+Substr(nSumma,1,4))
+if !File(sset[112][1]+"OstNew.Dbf")
+   S_Err({"Вы не сформировали ведомость"})
+   Return ( Nil )
+End
+S_FileDel(cLine+"Work.*")
+Dbcreate(cLine+"WORK",{ {"Ent", "N",04,00},;
+                        {"Naim","C",30,00},;
+                        {"Tip", "N",01,00},;
+                        {"Summa", "N",15,02}} )
+use (cLine+"WORK") new 
+Index on str(Tip,1)+str(Ent,4) to (cLine+"WORK")
+use (sset[112][1]+"OstNew") new
+Set Relation to str(Ent,4) into S_ENT
+nLastRec := 2*OstNew->(LastRec())
+S_Line_N(16,3,65,nLastRec,1)
+@ 01,06 say "Внимание..."
+@ 01,40 say "Формирую ведомость"
+nRecno := [" По окончании будет подан звуковой сигнал "]
+@ 00,(MaxCol()-len(nRecno))/2 say nRecno
+OstNew->(DbGoTop())
+OstNew->(DbSkip(1))
+nRecno := 1
+While ( !OstNew->(eof()) )
+  Work->(Dbappend())
+  Work->Ent   := OstNew->Ent
+  Work->Tip   := S_Ent->Tip
+  Work->Naim  := S_Ent->Naim
+  Work->Summa := OstNew->Summa
+  S_Line_N(18,04,65,nLastRec,++nRecno)
+  OstNew->(DbSkip(1))
+End
+OstNew->(DbCloseArea())
+Work->(DbGoTop())
+set(20,"PRINT")
+set(24,cFile)
+@ prow()+1,00 say " "
+@ prow()+1,00 say " Ведомость остатков на конец месяца"
+@ prow()+1,00 say " расчета с поставщиками за холодную воду и канализацию "
+@ prow()+1,00 say "     на "+S_cMonth(dDataRas)+" месяц "+str(year(dDataRas),4)+" г."
+@ prow()+1,00 say "  "
+nLine := 4
+While ( !Work->(eof()) )
+  nTip := Work->Tip
+  S_Gr->(DbSeek(str(nTip,1)))
+  nSumma := 0
+  TestDolg( S_Gr->Naim )
+  While ( nTip == Work->Tip .and. !Work->(eof()) )
+    TestDolg( str(++nnPp,3)+" "+str(Work->Ent,4)+" "+Work->Naim+" "+;
+              str(Work->Summa,15,2) )
+    nSumma += Work->Summa
+    S_Line_N(18,04,65,nLastRec,++nRecno)
+    Work->(Dbskip(1))
+  End
+  fSumma += nSumma
+  TestDolg( Repl("-",nLen) )
+  TestDolg( "     "+"    "+space(30)+" "+str(nSumma,15,2) )
+End
+@ prow()+1,00 say repl("=",nLen)
+@ prow()+1,00 say "     "+"    "+space(30)+" "+str(fSumma,15,2) 
+@ prow()+1,00 say " "
+nLine += 3
+for j := nLine to 60
+  @ prow()+1,00 say " "
+next
+@ prow()+1,00 say ""
+S_Line_N()
+set(24,"")
+set(20,"SCREEN")
+ShowPrn(cFile," Ведомость ",74)
+Work->(DbCloseArea())
+S_FileDel(cLine+"Work.*")
+fErase(cFile)
+Return ( Nil )
+///////////////////////////////////////////////////////////////////////////
+Static function TestDolg(cLine)
+Local i
+if nPage == 0 .or. nLine > 64
+   if nLine > 64
+     For i := nLine to 67
+        @ prow()+1,00 say Padc(" ",nLen)
+     Next
+     @ prow()+1,00 say repl(".",nLen)
+     nLine := 0
+   End
+   @ prow()+1,00 say padr(" Лист# "+str(++nPage,3),nLen)
+   @ prow()+1,00 say repl("-",nLen)
+   @ prow()+1,00 say " N |Код | Наименование                 | Сальдо на     "
+   @ prow()+1,00 say "п/п|орг.| организации                  | конец месяца  "
+   @ prow()+1,00 say repl("-",nLen)
+   nLine += 5
+End
+@ prow()+1,00 say cLine
+nLine++
+Return ( Nil )
+///////////////////////////////////////////////////////////////////////////
+Function PrnBook() // Печать книги продавца
+Local ColorOld := SetColor(), CursorOld := SetCursor(1)
+Local dDataNac := S_bom(date()), dDataKon := S_eom(date())
+Local cFile := sset[112][2]+"Prod"
+
+Private nPage := 1, nLine, oFile1, oFile2
+
+BEGIN SEQUENCE
+S_Open_m(11,08,15,50,Sset[77],sset[77])
+SetColor(Sset[76]+","+sset[77]+",,,"+sset[76])
+@ 01,01 say " Укажите период формирования ведомости:"
+@ 02,08 say "Начальная дата:" get dDataNac pict "@d" valid !Empty(dDataNac)
+@ 03,08 say "Конечная дата: " get dDataKon pict "@d" valid dDataKon >= dDataNac
+read
+S_wCloseSl(S_RanDom()%22+1)
+SetColor(ColorOld)
+if LastKey() == K_ESC ; break ; End
+Fakt->(DbSetOrder(2))
+Fakt->(DbGoTop())
+While !Fakt->(eof())
+   if Fakt->Data >= dDataNac ; Exit ; End
+   Fakt->(DbSkip(1))
+End
+if Fakt->(eof())
+   S_Err({"Данные отсутствуют"})
+   Break
+End
+oFile1 := oFileNew()
+ oFile2 := oFileNew()
+oFile1:Open(cFile+"1.txt")
+ oFile2:Open(cFile+"2.Txt")
+oFile1:WriteLn(chr(15))
+ oFile2:WriteLn(chr(15))
+oFile1:Writeln("   Первомайское ПУВКХ ") 
+ oFile2:Writeln(" ")
+oFile1:Writeln(" ")
+ oFile2:Writeln(" ")
+oFile1:WriteLn(padc(" КНИГА УЧЕТА ПРОДАЖИ ТОВАРОВ  (РАБОТ, УСЛУГ)",170))
+ oFile2:WriteLn("  ")
+if dDataNac = dDataKon
+   oFile1:WriteLn(padc( "ЗА "+dtoc(dDataNac),170))
+   oFile2:Writeln(" ")
+else
+   oFile1:WriteLn(padc( "С "+dtoc(dDataNac)+" ПО "+dtoc(dDataKon),170))
+   oFile2:Writeln(" ")
+end
+oFile1:Writeln("")
+ oFile2:Writeln(" ")
+oFile1:Writeln(padr("  Лист# "+str(nPage,3),170))
+ oFile2:Writeln(padr("  Лист# "+str(nPage,3),122))
+oFile1:Writeln("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+oFile1:Writeln("|     |      |          |                                   |Индивидуаль-|Общий обьем про-|Обьем продажи товаров(работ, услуг), по которым не возникают налоговые обязательства)               |")
+oFile1:Writeln("|     |      |          |                                   |ный налого- |дажи товаров,ра-|----------------------------------------------------------------------------------------------------| ")
+oFile1:Writeln("|     |      |          |                                   |вый номер   |бот, услуг,вклю-|Общий обьем|                 продажа на таможенной территории Украины              |на экспорт,кроме|")
+oFile1:Writeln("|     |      |          |                                   |номер поку- |    чая НДС     |продажи то-|-----------------------------------------------------------------------|услуг,предусмот-|")
+oFile1:Writeln("|     |      |          |                                   |   теля     |     (7+15)     |варов,работ| Лицам,которые являются плательщи- | Лицам,которые не являются платель-|ренных последним|")
+oFile1:Writeln("|     |      |          |                                   |            |                |   услуг   |            ками налога            |            щиками налога          |абзацем подпункт|")
+oFile1:Writeln("|     |      |          |                                   |            |                |(8+9+10+11 |-----------------------------------|-----------------------------------|6.2.1, абзацами |")
+oFile1:Writeln("|  N  |номер |   дата   |     П о к у п а т е л ь           |            |                | +12+13+14)| По ставке |Освобожден-|Не являются| По ставке |Освобожден-|Не являются|вторым и третим |")
+oFile1:Writeln("| п/п |накла |  выписки |                                   |            |                |           |     0%    |ных от на- |объектамами|     0%    |ных от на- |объектамами|подпункта 6.2.4,|")
+oFile1:Writeln("|     |ной   |          |                                   |            |                |           |           |логобложе- |налогообло-|           |логобложе- |налогообло-|подпунктом 6.2.2|")
+oFile1:Writeln("|     |      |          |                                   |            |                |           |           |    ния    |  жения    |           |   ния     |  жения    |статьи 6,по ста-|")
+oFile1:Writeln("|     |      |          |                                   |            |                |           |           |  (ст.5)   |(пункт 3.2 |           |  (ст.5)   |(пункт 3.2 |    вке 0%      |")
+oFile1:Writeln("|     |      |          |                                   |            |                |           |           |           |  ст.3)    |           |           |  ст.3)    |                |")
+oFile1:Writeln("|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|")
+oFile1:Writeln("|  1  |  2   |     3    |                  4                |      5     |         6      |      7    |      8    |      9    |     10    |     11    |     12    |     13    |       14       |")
+oFile1:Writeln("|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|")
+//
+oFile2:Writeln("|----------------------------------------------------------------------------------------------------------------------------------------------------------")
+oFile2:Writeln("|      |       Объемы продажи товаров, работ, услуг, для которых   |        Объем проведенных корректив            |Проведение расчетов с продажи товаров |")
+oFile2:Writeln("|      |             предусмотрено налоговое обязательство         |                                               |              работ, услуг            |")
+oFile2:Writeln("|      |-----------------------------------------------------------------------------------------------------------|--------------------------------------|")
+oFile2:Writeln("|      |Общие объ- |   Продажа на таможенной территории Украины    |корректировка продажи  |корректировка с продажи|Форма расчета (бартер,на-|Дата прове- |")
+oFile2:Writeln("|      |емы продаж |-----------------------------------------------|товаров, услуг, которые|товаров, работ, услуг, |личные, оплата с расчет- |дения расче-|")
+oFile2:Writeln("|      | (16+17+   |  Плательщикам НДС     | Не плательщикам НДС   |облаг-ся по ставке 20% |для которых НДС не на- |ного счета и др.)        |    тов     |")
+oFile2:Writeln("|Номер |  18+19)   |-----------------------|-----------------------|                       |      числяется        |                         |            |")
+oFile2:Writeln("|накла |           | База обло-|  НДС по   | База обло-|  НДС по   |-----------------------------------------------|                         |            |")
+oFile2:Writeln("|дной  |           |   жения   |ставке 20% |   жения   |ставке 20% |База обло- | Сумма НДС |    База обложения     |                         |            |")
+oFile2:Writeln("|      |           |           |           |           |           |   жения   |           |-----------------------|                         |            |")
+oFile2:Writeln("|      |           |           |           |           |           |   (+,-)   |   (+,-)   | По ставке |Освобожден-|                         |            |")
+oFile2:Writeln("|      |           |           |           |           |           |           |           |     0%    |ные (ст.5) |                         |            |")
+oFile2:Writeln("|      |           |           |           |           |           |           |           |    (+,-)  |   (+,-)   |                         |            |")
+oFile2:Writeln("|------|--------------------------------------------------------------------------------------------------------------------------------------------------|")
+oFile2:Writeln("|      |     15    |     16    |    17     |     18    |    19     |     20    |     21    |     22    |     23    |           24            |     25     |")
+oFile2:Writeln("|---------------------------------------------------------------------------------------------------------------------------------------------------------|")
+nLine := 23
+S_Sys({"Минутку терпения","Формируется ведомость"})
+While Fakt->Data <= dDataKon .and. !Fakt->(eof())
+   dData := Fakt->Data
+   nData6 := nData15 := nData16 := nData17 := nPP := 0
+   While Fakt->Data <= dDataKon .and. dData == Fakt->Data .and. !Fakt->(eof())
+      nNomCf := Fakt->NomChF
+      nNom6  := nNom15 := nNom16 := nNom17 := 0
+      cForma := Fakt->Sposob
+      dDataCh:= Fakt->Data
+      S_Ent->(DbSeek(str(Fakt->Ent,4)))
+      While nNomCf == Fakt->NomChF .and. Fakt->Data <= dDataKon .and. ;
+                                     dData == Fakt->Data .and. !Fakt->(eof())
+          nNom6  += Fakt->Summa + Fakt->Ndc
+          nNom15 += Fakt->Summa + Fakt->Ndc
+          nNom16 += Fakt->Summa
+          nNom17 += Fakt->Ndc
+          Fakt->(DbSkip(1))
+      End
+      PutBook( str(++nPP,6)+" "+str(nNomCf,6)+" "+dtoc(dDataCh)+" "+;
+               S_Ent->Naim+" "+S_Ent->KodNalog+" "+str(nNom6,16,2)+" "+;
+               space(11)+" "+space(11)+" "+space(11)+" "+space(11)+" "+;
+               space(11)+" "+space(11)+" "+space(11)+" "+space(16),;
+                 str(nNomCf,6)+" "+str(nNom15,11,2)+" "+str(nNom16,11,2)+" "+;
+                 str(nNom17,11,2)+" "+space(11)+" "+space(11)+" "+;
+                 space(11)+" "+space(11)+" "+space(11)+" "+space(11)+" "+;
+                 " "+padr(cForma,25)+" "+Substr(dtoc(date()),4) )
+       nData6  += nNom6
+       nData15 += nNom15
+       nData16 += nNom16
+       nData17 += nNom17
+   End
+   oFile1:Writeln("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+   oFile1:Writeln( "    Итого за  "+dtoc(dData)+" "+;
+               Space(35)+" "+space(12)+" "+str(nData6,16,2)+" "+;
+               space(11)+" "+space(11)+" "+space(11)+" "+space(11)+" "+;
+               space(11)+" "+space(11)+" "+space(11)+" "+space(16) )
+   oFile1:Writeln("  Исполнитель ")
+   oFile1:Writeln("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
+   //
+   oFile2:Writeln("-----------------------------------------------------------------------------------------------------------------------------------------------------------")
+   oFile2:Writeln( "      "+" "+str(nData15,11,2)+" "+str(nData16,11,2)+" "+;
+                 str(nData17,11,2)+" "+space(11)+" "+space(11)+" "+;
+                 space(11)+" "+space(11)+" "+space(11)+" "+space(11)+" "+;
+                 space(25)+" "+space(10) )
+   oFile2:Writeln(" ")
+   oFile2:Writeln("-----------------------------------------------------------------------------------------------------------------------------------------------------------")
+   nLine := 0
+End
+for i := 1 to 4
+    oFile1:Writeln(" ")
+    oFile2:Writeln(" ")
+next i
+S_Sys()
+oFile1:Close()
+oFile2:Close()
+ShowPrn((cFile+"1.txt"),"1-ю часть ведомости на экран",74)
+ShowPrn((cFile+"2.Txt"),"2-ю часть ведомости на экран",74)
+END SEQUENCE
+Fakt->(DbSetOrder(1))
+SetColor(ColorOld)
+SetCursor(CursorOld)
+fErase(cFile+"1.txt")
+fErase(cFile+"2.Txt")
+Return ( Nil )
+//////////////////////////////////////////////////////////////////////////
+Static Function PutBook(cLine1,cLine2)
+Local i
+if nLine > 65 .or. nLine == 0
+  if nLine > 0
+    for i := nLine to 68
+      oFile1:Writeln(" ")
+      oFile2:Writeln(" ")
+    End
+    oFile1:Writeln(Repl(".",170))
+    oFile2:Writeln(Repl(".",122))
+  End
+  ++nPage
+  oFile1:Writeln(" ")
+  oFile1:Writeln(padr("  Лист# "+str(nPage,3),170))
+  oFile1:Writeln("|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|")
+  oFile1:Writeln("|  1  |  2   |     3    |                  4                |      5     |         6      |      7    |      8    |      9    |     10    |     11    |     12    |     13    |       14       |")
+  oFile1:Writeln("|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|")
+  //
+  oFile2:Writeln(" ")
+  oFile2:Writeln(padr("  Лист# "+str(nPage,3),122))
+  oFile2:Writeln("|------|--------------------------------------------------------------------------------------------------------------------------------------------------|")
+  oFile2:Writeln("|      |     15    |     16    |    17     |     18    |    19     |     20    |     21    |     22    |     23    |           24            |     25     |")
+  oFile2:Writeln("|---------------------------------------------------------------------------------------------------------------------------------------------------------|")
+  nLine := 5
+end
+oFile1:Writeln(cLine1)
+oFile2:Writeln(cLine2)
+nLine++
+Return ( Nil )
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+Function VedOstN()
+Local cLine := sset[112][2], cFile := sset[112][2]+"OstN.txt", dDataRas
+Local nRecno, nLastRec, nSumma, fSumma := 0, nTip, nNpp := 0
+Private nPage := 0, nLine := 60, nLen := 55
+
+if !Ostatok->(DbSeek(str(0,4)))  ;  return ( Nil ) ; end
+nSumma := Alltrim(str(Ostatok->Summa,10))
+dDataRas := ctod(Substr(nSumma,7,2)+"."+Substr(nSumma,5,2)+"."+Substr(nSumma,1,4))
+S_FileDel(cLine+"Work.*")
+Dbcreate(cLine+"WORK",{ {"Ent", "N",04,00},;
+                        {"Naim","C",30,00},;
+                        {"Tip", "N",01,00},;
+                        {"Summa", "N",15,02}} )
+use (cLine+"WORK") new
+Index on str(Tip,1)+str(Ent,4) to (cLine+"WORK")
+Set Relation to str(Ent,4) into S_ENT
+nLastRec := Ostatok->(LastRec()) - 1
+S_Line_N(16,3,65,nLastRec,1)
+@ 01,06 say "Внимание..."
+@ 01,40 say "Формирую ведомость"
+nRecno := [" По окончании будет подан звуковой сигнал "]
+@ 00,(MaxCol()-len(nRecno))/2 say nRecno
+Ostatok->(DbGoTop())
+Ostatok->(DbSkip(1))
+nRecno := 0
+While ( !Ostatok->(eof()) )
+  S_Ent->(DbSeek(str(Ostatok->Ent,4)))
+  Work->(Dbappend())
+  Work->Ent   := Ostatok->Ent
+  Work->Tip   := S_Ent->Tip
+  Work->Naim  := S_Ent->Naim
+  Work->Summa := Ostatok->Summa
+  S_Line_N(18,04,65,nLastRec,++nRecno)
+  Ostatok->(DbSkip(1))
+End
+S_Line_N()
+Work->(DbGoTop())
+set(20,"PRINT")
+set(24,cFile)
+@ prow()+1,00 say " "
+@ prow()+1,00 say " Ведомость остатков на начало месяца"
+@ prow()+1,00 say " расчета с поставщиками за холодную воду и канализацию "
+@ prow()+1,00 say "     на "+S_cMonth(dDataRas)+" месяц "+str(year(dDataRas),4)+" г."
+@ prow()+1,00 say "  "
+nLine := 4
+While ( !Work->(eof()) )
+  nTip := Work->Tip
+  S_Gr->(DbSeek(str(nTip,1)))
+  nSumma := 0
+  TestDolg( S_Gr->Naim )
+  While ( nTip == Work->Tip .and. !Work->(eof()) )
+    TestOstN( str(++nnPp,3)+" "+str(Work->Ent,4)+" "+Work->Naim+" "+;
+              str(Work->Summa,15,2) )
+    nSumma += Work->Summa
+    Work->(Dbskip(1))
+  End
+  fSumma += nSumma
+  TestOstN( Repl("-",nLen) )
+  TestOstN( "     "+"    "+space(30)+" "+str(nSumma,15,2) )
+End
+@ prow()+1,00 say repl("=",nLen)
+@ prow()+1,00 say "     "+"    "+space(30)+" "+str(fSumma,15,2)
+@ prow()+1,00 say " "
+nLine += 3
+for j := nLine to 60
+  @ prow()+1,00 say " "
+next
+@ prow()+1,00 say ""
+set(24,"")
+set(20,"SCREEN")
+ShowPrn(cFile," Ведомость ",74)
+Work->(DbCloseArea())
+S_FileDel(cLine+"Work.*")
+fErase(cFile)
+Return ( Nil )
+///////////////////////////////////////////////////////////////////////////
+Static function TestOstN(cLine)
+Local i
+if nPage == 0 .or. nLine > 64
+   if nLine > 64
+     For i := nLine to 67
+        @ prow()+1,00 say Padc(" ",nLen)
+     Next
+     @ prow()+1,00 say repl(".",nLen)
+     nLine := 0
+   End
+   @ prow()+1,00 say padr(" Лист# "+str(++nPage,3),nLen)
+   @ prow()+1,00 say repl("-",nLen)
+   @ prow()+1,00 say " N |Код | Наименование                 | Сальдо на     "
+   @ prow()+1,00 say "п/п|орг.| организации                  | начало месяца "
+   @ prow()+1,00 say repl("-",nLen)
+   nLine += 5
+End
+@ prow()+1,00 say cLine
+nLine++
+Return ( Nil )
