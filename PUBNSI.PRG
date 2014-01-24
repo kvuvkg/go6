@@ -1010,12 +1010,12 @@ While ( .t. )
              @ MaxRow()-2,28 get nCena  pict "999.999999" 
              read
              if LastKey() == K_ESC ; Loop ; End
-             nSum := Round(nKolvo*nCena,2)
+             nSum := NEW_ROUND(nKolvo*nCena,2)
              @ MaxRow()-2,42 get nSum   pict "9999999999.99"
              read
              if LastKey() == K_ESC ; Loop ; End
-             nNdc := Round(pNdc*nSum,2)
-             nFec := Round(pFec*nSum,2)
+             nNdc := NEW_ROUND(pNdc*nSum,2)
+             nFec := NEW_ROUND(pFec*nSum,2)
              @ MaxRow()-1,05 get nNdc   pict "9999999999.99"
              @ MaxRow()-1,23 get nFec   pict "9999999999.99"
              read
@@ -1036,7 +1036,7 @@ While ( .t. )
              Prixod->Ndc   := nNdc
              Prixod->Fec   := nFec
              Prixod->Npp   := nNpp
-             Prixod->SumBank := Round(nSumma*nBank,2)
+             Prixod->SumBank := NEW_ROUND(nSumma*nBank,2)
              Prixod->Summa   := nSumma + Prixod->SumBank
            End
            SetCursor(0)
@@ -1056,7 +1056,7 @@ While ( .t. )
            nFec   := Prixod->Fec
            nNpp   := Prixod->Npp
            nChet  := Prixod->Chet 
-           nBank  := Round(Prixod->SumBank/Prixod->Summa,3)
+           nBank  := NEW_ROUND(Prixod->SumBank/Prixod->Summa,3)
            S_Ent->(Dbseek(str(Prixod->Ent,4)))
            BEGIN SEQUENCE
            @ MaxRow()-3,06 get nChet pict "9999" Valid VedChet(@nChet,MaxRow()-3,12)
@@ -1065,11 +1065,11 @@ While ( .t. )
            @ MaxRow()-2,28 get nCena  pict "999.999999" 
            read
            if LastKey() == K_ESC ; break ; End
-           nSum := Round(nKolvo*nCena,2)
+           nSum := NEW_ROUND(nKolvo*nCena,2)
            @ MaxRow()-2,42 get nSum   pict "9999999999.99"
            read
            if LastKey() == K_ESC ; break ; End
-            nNdc := Round(pNdc*nSum,2)
+            nNdc := NEW_ROUND(pNdc*nSum,2)
            @ MaxRow()-1,05 get nNdc   pict "9999999999.99"
            @ MaxRow()-1,23 get nFec   pict "9999999999.99"
            read
@@ -1088,7 +1088,7 @@ While ( .t. )
            Prixod->Ndc   := nNdc
            Prixod->Fec   := nFec
            Prixod->Npp   := nNpp
-           Prixod->SumBank := Round(nSumma*nBank,2)           
+           Prixod->SumBank := NEW_ROUND(nSumma*nBank,2)           
            Prixod->Summa   := nSumma + Prixod->SumBank
            END SEQUENCE
            SetCursor(0)

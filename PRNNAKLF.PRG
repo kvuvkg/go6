@@ -176,7 +176,7 @@ While .t.
                 End
                 @ 10,01 say cNaimProd
                 @ 10,32 say cEdIzm
-                nSumma := iif(nKolvo*nCena==0,nSumma,Round(nKolvo*nCena,2))
+                nSumma := iif(nKolvo*nCena==0,nSumma,NEW_ROUND(nKolvo*nCena,2))
                 @ 15,54 get nSumma pict "999999999999.99"
                 read
                 if LastKey() == K_ESC ; exit ; End
@@ -217,7 +217,7 @@ While .t.
              @ 14,54 get nKolvo pict "9999999999.9999"
              read
              if LastKey() == K_ESC ; break ; End
-             nSumma := iif(nKolvo*nCena==0,nSumma,Round(nKolvo*nCena,2))
+             nSumma := iif(nKolvo*nCena==0,nSumma,NEW_ROUND(nKolvo*nCena,2))
              @ 15,54 get nSumma pict "999999999999.99"
              read
              if LastKey() == K_ESC ; break ; End

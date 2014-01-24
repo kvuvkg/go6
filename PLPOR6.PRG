@@ -64,7 +64,7 @@ While .t.
   @ 06,08 get nSumma pict "999999999999.99" valid nSumma > 0
   read
   if LastKey()==K_ESC ; Loop ; End
-  nNdc := if(empty(nNdc),round(nSumma*0.16667,2),nNdc)
+  nNdc := if(empty(nNdc),NEW_ROUND(nSumma*0.16667,2),nNdc)
   @ 06,39 get nNdc   pict "999999999999.99" valid nNdc < nSumma .and. nNdc >= 0
   @ 07,09 get cText1
   @ 08,09 get cText2
@@ -217,7 +217,7 @@ While .t.
   @ 06,08 get nSumma pict "999999999999.99" valid nSumma > 0
   read
   if LastKey()==K_ESC ; Loop ; End
-  nNdc := if(empty(nNdc),round(nSumma*0.16667,2),nNdc)
+  nNdc := if(empty(nNdc),NEW_ROUND(nSumma*0.16667,2),nNdc)
   @ 06,39 get nNdc   pict "999999999999.99" valid nNdc < nSumma .and. nNdc >= 0
   @ 07,09 get cText1
   @ 08,09 get cText2
@@ -370,7 +370,7 @@ While .t.
   @ 06,08 get nSumma pict "999999999999.99" valid nSumma > 0
   read
   if LastKey()==K_ESC ; Loop ; End
-  nNdc := if(empty(nNdc),round(nSumma*0.16667,2),nNdc)
+  nNdc := if(empty(nNdc),NEW_ROUND(nSumma*0.16667,2),nNdc)
   @ 06,39 get nNdc   pict "999999999999.99" valid nNdc < nSumma .and. nNdc >= 0
   @ 07,09 get cText1
   @ 08,09 get cText2
@@ -521,7 +521,7 @@ While .t.
   @ 06,08 get nSumma pict "999999999999.99" valid nSumma > 0
   read
   if LastKey()==K_ESC ; Loop ; End
-  nNdc := if(empty(nNdc),round(nSumma*0.16667,2),nNdc)
+  nNdc := if(empty(nNdc),NEW_ROUND(nSumma*0.16667,2),nNdc)
   @ 06,39 get nNdc   pict "999999999999.99" valid nNdc < nSumma .and. nNdc >= 0
   @ 07,09 get cText1
   @ 08,09 get cText2
@@ -677,7 +677,7 @@ While .t.
   @ 06,08 get nSumma pict "999999999999.99" valid nSumma > 0
   read
   if LastKey()==K_ESC ; Loop ; End
-  nNdc := if(empty(nNdc),round(nSumma*0.16667,2),nNdc)
+  nNdc := if(empty(nNdc),NEW_ROUND(nSumma*0.16667,2),nNdc)
   @ 06,39 get nNdc   pict "999999999999.99" valid nNdc < nSumma .and. nNdc >= 0
   @ 07,09 get cText1
   @ 08,09 get cText2
