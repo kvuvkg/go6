@@ -4,9 +4,7 @@ Function PlPor() // формирование и печать платежных поручений
 Local dData := year(sset[100]), nPlPor, i, nKolEkz, nSumma, nNdc,;
       ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {},cText1, cText2, dDataPor, aProp, nEnt, nLen
-Local NaimMec := {"Сiчня     ","Лютого    ","Березня   ","Квiтня    ","Травня    ",;
-      "Червня    ","Липня     ","Серпня    ","Вересня   ","Жовтня    ","Листопада ",;
-      "Грудня    "}
+Local NaimMec := NaimMes2()
 Local   pr:=0
 
 S_Open_M(07,03,19,59,sset[32],sset[2])
@@ -159,9 +157,7 @@ Function PlPor1() // формирование и печать платежных поручений
 Local dData := year(sset[100]), nPlPor, i, nKolEkz, nSumma, nNdc,;
       ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {},cText1, cText2, dDataPor, aProp, nEnt, nLen
-Local NaimMec := {"Сiчня     ","Лютого    ","Березня   ","Квiтня    ","Травня    ",;
-      "Червня    ","Липня     ","Серпня    ","Вересня   ","Жовтня    ","Листопада ",;
-      "Грудня    "}
+Local NaimMec := NaimMes2()
 Local   pr:=0
 
 S_Open_M(07,03,19,59,sset[32],sset[2])
@@ -314,9 +310,7 @@ Function PlPor3() // формирование и печать платежных поручений
 Local dData := year(sset[100]), nPlPor, i, nKolEkz, nSumma, nNdc,;
       ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {},cText1, cText2, dDataPor, aProp, nEnt, nLen
-Local NaimMec := {"Сiчня     ","Лютого    ","Березня   ","Квiтня    ","Травня    ",;
-      "Червня    ","Липня     ","Серпня    ","Вересня   ","Жовтня    ","Листопада ",;
-      "Грудня    "}
+Local NaimMec := NaimMes2()
 Local   pr:=0
 
 S_Open_M(07,03,19,59,sset[32],sset[2])
@@ -467,9 +461,7 @@ Function PlPor2() // формирование и печать платежных поручений
 Local dData := year(sset[100]), nPlPor, i, nKolEkz, nSumma, nNdc,;
       ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {},cText1, cText2, dDataPor, aProp, nEnt, nLen
-Local NaimMec := {"Сiчня     ","Лютого    ","Березня   ","Квiтня    ","Травня    ",;
-      "Червня    ","Липня     ","Серпня    ","Вересня   ","Жовтня    ","Листопада ",;
-      "Грудня    "}
+Local NaimMec := NaimMes2()
 Local   pr:=0
 
 S_Open_M(07,03,19,59,sset[32],sset[2])
@@ -625,9 +617,7 @@ Function PlPor282() // формирование и печать платежных поручений
 Local dData := year(sset[100]), nPlPor, i, nKolEkz, nSumma, nNdc,;
       ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {},cText1, cText2, dDataPor, aProp, nEnt, nLen
-Local NaimMec := {"Сiчня     ","Лютого    ","Березня   ","Квiтня    ","Травня    ",;
-      "Червня    ","Липня     ","Серпня    ","Вересня   ","Жовтня    ","Листопада ",;
-      "Грудня    "}
+Local NaimMec := NaimMes2()
 Local   pr:=0
 
 S_Open_M(07,03,19,59,sset[32],sset[2])
@@ -878,9 +868,7 @@ Function ChFakt() // формирование и печать счет-фактуры
 Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {}, CursorOld := SetCursor(1)
 
-Local NaimMec := {"январь ","февраль","март","апрель","май",;
-      "июнь","июль","август","сентябрь","октябрь","ноябрь",;
-      "декабрь"}
+Local NaimMec := NaimMes("ru")
 
 S_Open_M(07,03,15,41,sset[32],sset[2])
 While .t.
@@ -1129,9 +1117,7 @@ Function ChFakt1() // формирование и печать счет-фактуры
 Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {}, CursorOld := SetCursor(1)
 
-Local NaimMec := {"ciчень ","лютий","березень","квiтень","травень",;
-      "червень","липень","серпень","вересень","жовтень","листопад",;
-      "грудень"}
+Local NaimMec := NaimMes("ru")
 
 S_Open_M(07,03,15,41,sset[32],sset[2])
 While .t.
@@ -1383,9 +1369,7 @@ Function ChFakt4() // формирование и печать счет-фактуры
 Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {}, CursorOld := SetCursor(1)
 
-Local NaimMec := {"ciчень ","лютий","березень","квiтень","травень",;
-      "червень","липень","серпень","вересень","жовтень","листопад",;
-      "грудень"}
+Local NaimMec := NaimMes()
 
 S_Open_M(07,03,15,41,sset[32],sset[2])
 While .t.
@@ -1634,9 +1618,7 @@ Function ChFakt5() // формирование и печать счет-фактуры
 Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {}, CursorOld := SetCursor(1)
 
-Local NaimMec := {"ciчень ","лютий","березень","квiтень","травень",;
-      "червень","липень","серпень","вересень","жовтень","листопад",;
-      "грудень"}
+Local NaimMec := NaimMes()
 
 S_Open_M(07,03,15,41,sset[32],sset[2])
 While .t.
@@ -1885,9 +1867,7 @@ Function ChFakt2() // формирование и печать счет-фактуры
 Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {}, CursorOld := SetCursor(1)
 
-Local NaimMec := {"ciчень ","лютий","березень","квiтень","травень",;
-      "червень","липень","серпень","вересень","жовтень","листопад",;
-      "грудень"}
+Local NaimMec := NaimMes()
 
 S_Open_M(07,03,15,41,sset[32],sset[2])
 While .t.
@@ -2246,9 +2226,7 @@ Return ( Ret )
 Function akt() //  печать akta
 Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {}, CursorOld := SetCursor(1)
-Local NaimMec := {"ciчень ","лютий","березень","квiтень","травень",;
-      "червень","липень","серпень","вересень","жовтень","листопад",;
-      "грудень"}
+Local NaimMec := NaimMes()
 
 S_Open_M(07,03,15,41,sset[32],sset[2])
 While .t.
@@ -2381,9 +2359,7 @@ return ( Nil )
 Function akt4() //  печать akta
 Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {}, CursorOld := SetCursor(1)
-Local NaimMec := {"ciчень ","лютий","березень","квiтень","травень",;
-      "червень","липень","серпень","вересень","жовтень","листопад",;
-      "грудень"}
+Local NaimMec := NaimMes()
 
 S_Open_M(07,03,15,41,sset[32],sset[2])
 While .t.
@@ -2516,9 +2492,7 @@ return ( Nil )
 Function akt5() //  печать akta
 Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {}, CursorOld := SetCursor(1)
-Local NaimMec := {"ciчень ","лютий","березень","квiтень","травень",;
-      "червень","липень","серпень","вересень","жовтень","листопад",;
-      "грудень"}
+Local NaimMec := NaimMes()
 
 S_Open_M(07,03,15,41,sset[32],sset[2])
 While .t.
@@ -2649,9 +2623,7 @@ return ( Nil )
 Function akt1() //  печать akta
 Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {}, CursorOld := SetCursor(1)
-Local NaimMec := {"ciчень ","лютий","березень","квiтень","травень",;
-      "червень","липень","серпень","вересень","жовтень","листопад",;
-      "грудень"}
+Local NaimMec := NaimMes()
 
 S_Open_M(07,03,15,41,sset[32],sset[2])
 While .t.
@@ -2777,9 +2749,7 @@ While .t.
 Function akt2() //  печать akta
 Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {}, CursorOld := SetCursor(1)
-Local NaimMec := {"ciчень ","лютий","березень","квiтень","травень",;
-      "червень","липень","серпень","вересень","жовтень","листопад",;
-      "грудень"}
+Local NaimMec := NaimMes()
 
 S_Open_M(07,03,15,41,sset[32],sset[2])
 While .t.
