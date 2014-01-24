@@ -784,6 +784,7 @@ Static Function CloseMes()  // закрытие месяца по приходу
 	End
 	BEGIN SEQUENCE
 		S_Sys({"Ожидайте..."," Осуществляю переход на новый месяц"})
+		// prixod ==> aPrix; Prixod.zap()
 		DbSelectArea("Prixod")
 		if !File(cDir+"aPrix.dbf")
 		 i := DbStruct()
@@ -805,6 +806,7 @@ Static Function CloseMes()  // закрытие месяца по приходу
 		Reindex
 		Arx->(DbCloseArea())
 		//////////////////////
+		// Rasxod ==> aRasx; Rasxod.zap()
 		DbSelectArea("Rasxod")
 		if !File(cDir+"aRasx.dbf")
 		 i := DbStruct()
@@ -826,6 +828,7 @@ Static Function CloseMes()  // закрытие месяца по приходу
 		__DbZap()
 		Reindex
 		//////////////////////////
+		// OstNew ==> Ostatok; Rasxod.zap()
 		Ostatok->(DbCloseArea())
 		ferase(cDir+"OstaTok.dbf")
 		ferase(cDir+"OstTok.ntx")
