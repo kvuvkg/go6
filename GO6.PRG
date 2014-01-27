@@ -254,6 +254,10 @@ Static Function MainMenu(data)
 	omen4:addPrompt(++i,"Выполнение процедуры по переходу на следующий месяц")
 	omen4:block(i,{||CloseMes()})
 
+	omen4:add("Загрузка месяца ")
+	omen4:addPrompt(++i,"Загрузка месяца в базу из архива, как текущего! Очищает текущие Prixod, Rashod!")
+	omen4:block(i,{||LoadMes()})
+	
 	omen4:add("Копия БД на дискету ")
 	omen4:addPrompt(++i,"создание страховой копии БД да дискете")
 	omen4:block(i,{||CopyDb()})
@@ -861,3 +865,94 @@ Static Function CloseMes()  // закрытие месяца по приходу
 	END SEQUENCE
 Return ( Nil )
 //////////////////////////////////////////////////////////////////////////////
+
+STATIC FUNCTION LoadMes()
+	MEMVAR Sset
+	LOCAL dDate := date()
+	LOCAL cDir := sset[112][1]
+	LOCAL ColorOld := SetColor(sset[32]+","+sset[2])
+	LOCAL GetList := {}
+	LOCAL WindowOld := S_wSelect()
+	LOCAL cDate, i, nRecno, nLastRec
+	IF !File(cDir+"aRasx.dbf") .OR. !File(cDir+"aPrix.dbf")
+	    S_Err({02,"Нет файлов с архивами",;
+		"% Нажмите Enter для продолжения;"})
+	    Return ( Nil )
+	ENDIF  
+	IF S_Err({02,;
+			 "Внимание!",;
+			 "Эта операция загрузит как текущий, указанный вами месяц",; 
+             "Вы действительно желаете загрузить месяц из архива",;
+             "и не пожалеете об этом?","% Да ; Нет ;"}) == 2
+			 RETURN(nil)
+	ENDIF		 
+	// Запрашиваем дату
+	S_Open_M(12,38,14,65,sset[32],sset[2])
+	@ 01,01 say "Укажите дату" get dDate Pict "@d" valid !empty(dDate)
+	read
+	S_wCloseSl(S_RanDom()%22+1)
+	SetColor("n/w")
+	S_wSelect(0)
+	S_wSelect(WindowOld)
+	SetColor(ColorOld)
+	cDate = dtos(dDate)
+	// Сбрасываем дату на первый день месяца
+	dDate=ctod("01."+Substr(cDate,5,2)+"."+Substr(cDate,1,4)) // Первая дата заказанного месяца.
+	cDate = dtos(dDate) // Первая дата заказанного месяца как строка в формате YYYYMMDD.
+//    S_Err({"cDate: "+cDate})
+// Очищаем остатки
+	DbSelectArea("Ostatok")
+	__DbZap()
+	Ostatok->(Dbappend())
+	Ostatok->Ent := 0
+	Ostatok->Summa := val(cDate)
+	Reindex
+// Загружаем расход
+    // Ищем данные для загрузки
+	use (cDir+"aRasx") new alias aRasx
+	while (!aRasx->(eof()) .and. aRasx->data < dDate)
+		aRasx->(Dbskip(1))
+	end	
+	// Стоим на первой записи нужного месяца или конец файла
+	DbSelectArea("Rasxod")
+	__DbZap()
+	Reindex
+	// Загружаем расход
+	while (!aRasx->(eof()) .and. aRasx->data == dDate)
+	    Rasxod->(DbAppend())
+        For i := 1 to Rasxod->(fCount())
+		    Rasxod->(FieldPut(i,aRasx->(FieldGet(i))))
+        Next
+		aRasx->(Dbskip(1))
+	end
+	aRasx->(DbCloseArea())
+// Загружаем приход
+    // Ищем данные для загрузки
+	use (cDir+"aPrix") new alias aPrix
+	while (!aPrix->(eof()) .and. aPrix->data < dDate)
+		aPrix->(Dbskip(1))
+	end	
+	// Стоим на первой записи нужного месяца или конец файла
+	DbSelectArea("Prixod")
+	__DbZap()
+	Reindex
+	// Загружаем приход
+	while (!aPrix->(eof()) .and. aPrix->data == dDate)
+	    Prixod->(DbAppend())
+        For i := 1 to Prixod->(fCount())
+		    Prixod->(FieldPut(i,aPrix->(FieldGet(i))))
+        Next
+		aPrix->(Dbskip(1))
+	end
+	aPrix->(DbCloseArea())
+    S_Err({"Ok!"," все готово ","% нажмите ENTER для продолжения ;"})
+	if ostatok->(DbSeek(str(0,4)))
+		nRecno := Alltrim(str(Ostatok->Summa,10))
+		nRecno := ctod(Substr(nRecno,7,2)+"."+Substr(nRecno,5,2)+"."+Substr(nRecno,1,4))
+		nLastRec := S_wSelect()
+		S_wSelect(0)
+		@ 23,00 say padc("Расчет за "+S_cMonth(nRecno)+" месяц "+str(year(nRecno),4)+" г.",80) color sset[86]
+		S_wSelect(nLastrec)
+	End
+RETURN( nil )
+
