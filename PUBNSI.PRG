@@ -72,31 +72,31 @@ While ( .t. )
            nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
            @ MaxRow()-1,01 say padc("Регистрируйте запись",MaxCol()-1) color sset[5]
            BEGIN SEQUENCE
-           @ 03,01 say padc(" ",MaxCol()-1)
-           nChet := nTip := 0
-           SetCursor(1)
-           @ 03,01 get nChet pict "9999"  Valid VedChet(@nChet,MaxRow()-4,06)
-           @ 03,07 get nTip pict "9"  valid VedGr(@nTip,MaxRow()-3,11)
-           read
-           if LastKey() == K_ESC ; break ; End
-           if S_Price->(DbSeek(str(nChet,4,0)+str(nTip,1)))
-             S_Beep()
-             @ 03,09 say " Уже имеется"
-             M_Inkey(3)
-             break
-           End
-           nCena := nNdc := nFec := 0
-           @ 03,09 get nCena pict "9999999999.999999" valid nCena > 0
-           @ 03,26 get nNdc  pict "99.999" valid nNdc >= 0
-           @ 03,33 get nFec  pict "99.999" valid nFec >= 0
-           read
-           if LastKey() == K_ESC ; break ; End
-           S_Price->(DbAppend())
-           S_Price->Tip  := nTip
-           S_Price->Chet := nChet
-           S_Price->Cena := nCena
-           S_Price->Ndc  := nNdc
-           S_Price->Fec  := nFec
+			   @ 03,01 say padc(" ",MaxCol()-1)
+			   nChet := nTip := 0
+			   SetCursor(1)
+			   @ 03,01 get nChet pict "9999"  Valid VedChet(@nChet,MaxRow()-4,06)
+			   @ 03,07 get nTip pict "9"  valid VedGr(@nTip,MaxRow()-3,11)
+			   read
+			   if LastKey() == K_ESC ; break ; End
+			   if S_Price->(DbSeek(str(nChet,4,0)+str(nTip,1)))
+				 S_Beep()
+				 @ 03,09 say " Уже имеется"
+				 M_Inkey(3)
+				 break
+			   End
+			   nCena := nNdc := nFec := 0
+			   @ 03,09 get nCena pict "9999999999.999999" valid nCena > 0
+			   @ 03,26 get nNdc  pict "99.999" valid nNdc >= 0
+			   @ 03,33 get nFec  pict "99.999" valid nFec >= 0
+			   read
+			   if LastKey() == K_ESC ; break ; End
+			   S_Price->(DbAppend())
+			   S_Price->Tip  := nTip
+			   S_Price->Chet := nChet
+			   S_Price->Cena := nCena
+			   S_Price->Ndc  := nNdc
+			   S_Price->Fec  := nFec
            END SEQUENCE
            SetCursor(0)
            RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)
@@ -106,18 +106,18 @@ While ( .t. )
            nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
            @ MaxRow()-1,01 say padc("Корректируйте данные",MaxCol()-1) color sset[5]
            BEGIN SEQUENCE
-           SetCursor(1)
-           nCena := S_Price->Cena
-           nNdc  := S_Price->Ndc
-           nFec  := S_Price->Fec
-           @ nRow,09 get nCena pict "9999999999.999999" ////valid nCena > 0
-           @ nRow,26 get nNdc  pict "99.999"   /// valid nNdc >= 0
-           @ nRow,33 get nFec  pict "99.999"      valid nFec >= 0
-           read
-           if LastKey() == K_ESC ; break ; End
-           S_Price->Cena := nCena
-           S_Price->Ndc  := nNdc
-           S_Price->Fec  := nFec
+			   SetCursor(1)
+			   nCena := S_Price->Cena
+			   nNdc  := S_Price->Ndc
+			   nFec  := S_Price->Fec
+			   @ nRow,09 get nCena pict "9999999999.999999" ////valid nCena > 0
+			   @ nRow,26 get nNdc  pict "99.999"   /// valid nNdc >= 0
+			   @ nRow,33 get nFec  pict "99.999"      valid nFec >= 0
+			   read
+			   if LastKey() == K_ESC ; break ; End
+			   S_Price->Cena := nCena
+			   S_Price->Ndc  := nNdc
+			   S_Price->Fec  := nFec
            END SEQUENCE
            SetCursor(0)
            RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)
@@ -200,24 +200,24 @@ While ( .t. )
            nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
            @ MaxRow()-1,01 say padc("Регистрируйте запись",MaxCol()-1) color sset[5]
            BEGIN SEQUENCE
-           @ 03,01 say padc(" ",MaxCol()-1)
-           nRow := 0
-           SetCursor(1)
-           @ 03,01 get nRow pict "9" valid nRow > 0
-           if LastKey() == K_ESC ; break ; End
-           if S_Gr->(DbSeek(str(nRow,1)))
-             S_Beep()
-             @ 03,03 say "Внимательней Уже имеется"
-             M_Inkey(3)
-             break
-           End
-           cNaim := space(25)
-           @ 03,03 get cNaim valid !Empty(cNaim)
-           read
-           if LastKey() == K_ESC ; break ; End
-           S_Gr->(DbAppend())
-           S_Gr->tip  := nRow
-           S_Gr->Naim := cNaim
+			   @ 03,01 say padc(" ",MaxCol()-1)
+			   nRow := 0
+			   SetCursor(1)
+			   @ 03,01 get nRow pict "9" valid nRow > 0
+			   if LastKey() == K_ESC ; break ; End
+			   if S_Gr->(DbSeek(str(nRow,1)))
+				 S_Beep()
+				 @ 03,03 say "Внимательней Уже имеется"
+				 M_Inkey(3)
+				 break
+			   End
+			   cNaim := space(25)
+			   @ 03,03 get cNaim valid !Empty(cNaim)
+			   read
+			   if LastKey() == K_ESC ; break ; End
+			   S_Gr->(DbAppend())
+			   S_Gr->tip  := nRow
+			   S_Gr->Naim := cNaim
            END SEQUENCE
            SetCursor(0)
            RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)
@@ -227,12 +227,12 @@ While ( .t. )
            nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
            @ MaxRow()-1,01 say padc("Корректируйте данные",MaxCol()-1) color sset[5]
            BEGIN SEQUENCE
-           SetCursor(1)
-           cNaim := S_Gr->Naim
-           @ nRow,03 get cNaim valid !Empty(cNaim)
-           read
-           if LastKey() == K_ESC ; break ; End
-           S_Gr->Naim := cNaim
+			   SetCursor(1)
+			   cNaim := S_Gr->Naim
+			   @ nRow,03 get cNaim valid !Empty(cNaim)
+			   read
+			   if LastKey() == K_ESC ; break ; End
+			   S_Gr->Naim := cNaim
            END SEQUENCE
            SetCursor(0)
            RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)
@@ -449,62 +449,62 @@ if nRow <> Nil
   End
 else
   BEGIN SEQUENCE
-  S_Ent->(DbGoBottom())
-  nEnt := S_Ent->Ent + 1
-  @ 01,08 say "Код организации" Get nEnt pict "9999" valid nEnt > 0
-  if LastKey() == K_ESC ; Break ; End
-  if S_Ent->(DbSeek(str(nEnt,4)))
-     @ 02,06 say padc(" Запись имеется ",33) Color sset[5]
-     inkey(0)
-     break
-  End
-  cNaim := S_Ent->Naim
-  cAdres:= S_Ent->Adres
-  cNaim2 := S_Ent->Naim2
-  cAdres2:= S_Ent->Adres2
-  cOkpo := S_Ent->Okpo
-  cMfo  := S_Ent->Mfo
-  cSchet:= S_Ent->Schet
-  cBank := S_Ent->Bank
-  cKodNalog := S_Ent->kodNalog
-  cKodSvid  := S_Ent->kodSvid
-  cDogovor  := S_Ent->Dogovor
-  dDataDog  := S_Ent->DataDog
-  nTip      := S_Ent->Tip
-  cTel:= S_Ent->Tel
+	  S_Ent->(DbGoBottom())
+	  nEnt := S_Ent->Ent + 1
+	  @ 01,08 say "Код организации" Get nEnt pict "9999" valid nEnt > 0
+	  if LastKey() == K_ESC ; Break ; End
+	  if S_Ent->(DbSeek(str(nEnt,4)))
+		 @ 02,06 say padc(" Запись имеется ",33) Color sset[5]
+		 inkey(0)
+		 break
+	  End
+	  cNaim := S_Ent->Naim
+	  cAdres:= S_Ent->Adres
+	  cNaim2 := S_Ent->Naim2
+	  cAdres2:= S_Ent->Adres2
+	  cOkpo := S_Ent->Okpo
+	  cMfo  := S_Ent->Mfo
+	  cSchet:= S_Ent->Schet
+	  cBank := S_Ent->Bank
+	  cKodNalog := S_Ent->kodNalog
+	  cKodSvid  := S_Ent->kodSvid
+	  cDogovor  := S_Ent->Dogovor
+	  dDataDog  := S_Ent->DataDog
+	  nTip      := S_Ent->Tip
+	  cTel:= S_Ent->Tel
 
-  @ 02,02 say "Наименование" get cNaim
-  @ 03,02 say "Наименование2" get cNaim2
-  @ 04,02 say "Адрес       " get cAdres
-  @ 05,02 say "Адрес       " get cAdres2
-  @ 06,02 say "Код ОКПО" get cOkpo
-  @ 07,02 say "МФО" get cMfo
-  @ 08,02 say "счет" get cSchet
-  @ 09,02 say "БАНК        " get cBank
-  @ 10,02 say "ИНН" get cKodNalog
-  @ 10,20 say "НС"  get cKodSvid
-  @ 11,02 say "Группа организации" get nTip pict "9" valid VedGr(@nTip,09,24)
-  @ 11,02 say "Договор" get cDogovor
-  @ 12,21 say " от " get dDataDog pict "@d"
-  @ 13,02 say "TEL" get cTel
-  read
-  if LastKey() == K_ESC ; Break ; End
-  S_Ent->(DbAppend())
-  S_Ent->Ent  := nEnt
-  S_Ent->Naim := cNaim
-  S_Ent->Naim2 := cNaim2
-  S_Ent->Okpo := cOkpo
-  S_Ent->Mfo  := cMfo
-  S_Ent->Schet:= cSchet
-  S_Ent->Bank := cBank
-  S_Ent->Tip  := nTip
-  S_Ent->Adres2:= cAdres2
-  S_Ent->Adres:= cAdres
-  S_Ent->KodNalog := cKodNalog
-  S_Ent->KodSvid  := cKodSvid
-  S_Ent->Dogovor  := cDogovor
-  S_Ent->DataDog  := dDataDog
-  S_Ent->Tel  := cTel
+	  @ 02,02 say "Наименование" get cNaim
+	  @ 03,02 say "Наименование2" get cNaim2
+	  @ 04,02 say "Адрес       " get cAdres
+	  @ 05,02 say "Адрес       " get cAdres2
+	  @ 06,02 say "Код ОКПО" get cOkpo
+	  @ 07,02 say "МФО" get cMfo
+	  @ 08,02 say "счет" get cSchet
+	  @ 09,02 say "БАНК        " get cBank
+	  @ 10,02 say "ИНН" get cKodNalog
+	  @ 10,20 say "НС"  get cKodSvid
+	  @ 11,02 say "Группа организации" get nTip pict "9" valid VedGr(@nTip,09,24)
+	  @ 11,02 say "Договор" get cDogovor
+	  @ 12,21 say " от " get dDataDog pict "@d"
+	  @ 13,02 say "TEL" get cTel
+	  read
+	  if LastKey() == K_ESC ; Break ; End
+	  S_Ent->(DbAppend())
+	  S_Ent->Ent  := nEnt
+	  S_Ent->Naim := cNaim
+	  S_Ent->Naim2 := cNaim2
+	  S_Ent->Okpo := cOkpo
+	  S_Ent->Mfo  := cMfo
+	  S_Ent->Schet:= cSchet
+	  S_Ent->Bank := cBank
+	  S_Ent->Tip  := nTip
+	  S_Ent->Adres2:= cAdres2
+	  S_Ent->Adres:= cAdres
+	  S_Ent->KodNalog := cKodNalog
+	  S_Ent->KodSvid  := cKodSvid
+	  S_Ent->Dogovor  := cDogovor
+	  S_Ent->DataDog  := dDataDog
+	  S_Ent->Tel  := cTel
   END SEQUENCE
 End
 S_wCloseSl(S_RanDom()%22+1)
@@ -711,400 +711,404 @@ aeval({ {523,2},{698,2},{880,2},{1046,4},{880,2},{1046,4}  },;
 return ( Nil )
 ////////////////////////////////////////////////////////////////////////////
 Function VedRasxod()  // Ввод расхода
-Local tb, ColorOld := SetColor(COLOR_BAZA),;
-      SelectOld := Select(), nKey, nRow, SursorOld := SetCursor(0),;
-      nEnt, nSumma, GetList := {}, nChet, nDelete := 0, nRegim := 1,;
-      aRegim := {"+"," "}
+	Local tb, ColorOld := SetColor(COLOR_BAZA),;
+		  SelectOld := Select(), nKey, nRow, SursorOld := SetCursor(0),;
+		  nEnt, nSumma, GetList := {}, nChet, nDelete := 0, nRegim := 1,;
+		  aRegim := {"+"," "}
 
-DbSelectArea("Rasxod")
-Set relation to str(Rasxod->Ent,4) into S_ENT,;
-             to str(Rasxod->Chet,4,0) into S_CHET
-S_Open_M(01,01,22,62,,sset[2])
-@ 01,01 say "Код  Наименование организации        Счет      Сумма  "
-@ 02,01 say Repl([─],MaxCol()-1)
-@ MaxRow()-2,01 say Repl([─],MaxCol()-1)
-@ MaxRow()-4,01 say Repl([─],MaxCol()-1)
-@ MaxRow()-1,01 say padc("2печ 3уд 4рег 5корр 6поиск 7поиск ",MaxCol()-1) color sset[5]
-@ MaxRow()-3,01 say "Наименование счета"
-tb := TBrowseDb(03,01,MaxRow()-5,MaxCol()-1)
-tb:AddColumn(TbColumnNew("" ,{|| str(Rasxod->Ent,4)+" "+S_Ent->Naim+" "+;
-                              str(Rasxod->Chet,4,0)+" "+str(Rasxod->Summa,13,2) } ))
-Rasxod->(DbGoTop())
-While ( .t. )
-   nKey := 0
-   While ( !tb:Stabilize() )
-     if ( nKey := m_inkey() ) != 0 ; exit ; end
-   end
-   nRow := Row()
-   @ MaxRow()-3,21 say S_Chet->Naim
-   if nKey == 0 ; nKey := m_inkey(0)  ; end
-   if nKey == K_ESC ; exit ; end
-   if tb:Stable
-    do case
-       Case nKey == K_F2  // Печать
-            nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
-            @ MaxRow()-1,01 say padc("Следите за печатью и бумагой",MaxCol()-1) color sset[5]
-            nRow := Rasxod->(Recno())
-            Rasxod->(DbGoTop())
-            Set Device to Print
-            @ prow()+1,01 say padc("Распечатка",57)
-            @ prow()+1,01 say padc("базы Ведомости расчета с потребителями",57)
-            @ prow()+1,01 say repl("-",57)
-            @ prow()+1,01 say "Код  Наименование организации        Счет      Сумма  "
-            @ prow()+1,01 say repl("-",57)
-            While ( !Rasxod->(eof()) )
-              @ prow()+1,01 say str(Rasxod->Ent,4)+" "+S_Ent->Naim+" "+;
-                                str(Rasxod->Chet,4,0)+" "+str(Rasxod->Summa,13,2)
-              Rasxod->(DbSkip(1))
-            End
-            @ prow()+1,01 say repl("=",55)
-            @ prow()+1,01 say ""
-            Set Device to Screen
-            RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
-            Rasxod->(DbGoto(nRow))
-       Case nKey == K_F6  // Поиск по ключу
-            SetCursor(1)
-            nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
-            @ MaxRow()-1,01 say padc(" ",MaxCol()-1)
-            nRow := 0
-            @ MaxRow()-1,03 say "Укажите код" get nRow pict "9999" valid nRow > 0
-            read
-            if LastKey() <> K_ESC
-               Rasxod->(DbSeek(str(nRow,4),.t.))
-               if Rasxod->(eof())
-                  S_Beep(1)  ;  tb:GoBottom()
-               end
-            end
-            SetCursor(0)
-            RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
-            FreshOrder(tb)
-       Case nKey == K_F7  // Поиск по наименованию
-            SetCursor(1)
-            nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
-            @ MaxRow()-1,01 say padc(" ",MaxCol()-1)
-            nRow := space(30)
-            @ MaxRow()-1,01 say "--->" get nRow
-            read
-            if LastKey() <> K_ESC
-               DbSelectArea("S_Ent")
-               if !S_Locate("Naim",Alltrim(S_Upper(nRow)))
-                  S_Err({" Данных не обнаружено "})
-                  DbSelectArea("Rasxod")
-               else
-                  nSumma := S_Ent->Ent
-                  DbSelectArea("Rasxod")
-                  if !Rasxod->(DbSeek(str(nSumma)))
-                     S_Err({" Данных не обнаружено "})
-                     S_Beep(1)  ;  tb:GoBottom()
-                  End
-               end
-            end
-            SetCursor(0)
-            RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
-            FreshOrder(tb)
-       case nKey == K_F3  // Удаление
-           if Rasxod->(Recno()) # 0 .and. S_Err({S_wRow()+1,S_wCol()+2,,;
-             "Вы действительно","желаите удалить запись",;
-             "и не пожалеите об этом?","% Да ; Нет ;"}) == 1 
-                 Rasxod->(DbDelete())   ;   nDelete++
-                 Rasxod->(DbSkip(1))
-                 if Rasxod->(eof()) ; Rasxod->(DbGoBottom()) ; end
-           end
-           FreshOrder(tb)
-       case nKey == K_F4  // Регистрация
-           tb:DeHilite()
-           nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
-           @ MaxRow()-1,01 say padc("Вставляйте записи",MaxCol()-1) color sset[5]
-           nEnt := 0
-           While ( .t. )
-             Scroll(03,01,MaxRow()-5,MaxCol()-1,-1)
-             @ 03,01 get nEnt Pict "9999" valid VedEnt(@nEnt,03,06)
-             read
-             if LastKey() == K_ESC ; Exit ; End
-             nSumma := nChet := 0
-             @ 03,42 get nChet pict "9999" Valid VedChet (@nChet,MaxRow()-3,21)
-             read
-             if LastKey() <> K_ESC
-                if Rasxod->(DbSeek(str(nEnt,4)+str(nChet,4,0)))
-                     @ 03,06 say padc(" Запись имеется Внимательней",30) Color sset[5]
-                  else
-                     @ 03,48 get nSumma pict "9999999999.99"
-                     read
-                     if LastKey() <> K_ESC
-                         Rasxod->(DbAppend()) ;  Rasxod->Chet  := nChet
-                         Rasxod->Ent := nEnt  ;  Rasxod->Summa := nSumma
-                     End
-                  End
-             End
-           End
-           SetCursor(0)
-           RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
-           FreshOrder(tb)
-       case nKey == K_F5  .and. Rasxod->Ent > 0  // Корретировка
-           tb:DeHilite()
-           nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
-           SetCursor(1)
-           @ MaxRow()-1,01 say padc("Корректируйте данные",MaxCol()-1) color sset[5]
-           nSumma := if(nRegim==1,0,Rasxod->Summa)
-           nChet  := Rasxod->Chet
-           @ nRow,42 get nChet pict "9999" Valid VedChet(@nChet,MaxRow()-3,21)
-           read
-           if LastKey() <> K_ESC
-              @ nRow,48 get nSumma pict "9999999999.99"
-              read
-              if LastKey() <> K_ESC
-                 Rasxod->Summa := nSumma
-                 Rasxod->Chet := nChet
-              End
-           End
-           SetCursor(0)
-           RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
-           FreshOrder(tb)
-       other
-           ApplyKey(nkey,tb)
-    end  
-   end
-End
-tb := Nil
-S_wCloseSl(S_RanDom()%22+1)
-Set relation to
-if nDelete > 0  ;  pack  ; End
-SetColor(ColorOld)
-SetCursor(SursorOld)
-Select(SelectOld)
+	DbSelectArea("Rasxod")
+	Set relation to str(Rasxod->Ent,4) into S_ENT,;
+				 to str(Rasxod->Chet,4,0) into S_CHET
+	S_Open_M(01,01,22,62,,sset[2])
+	@ 01,01 say "Код  Наименование организации        Счет      Сумма  "
+	@ 02,01 say Repl([─],MaxCol()-1)
+	@ MaxRow()-2,01 say Repl([─],MaxCol()-1)
+	@ MaxRow()-4,01 say Repl([─],MaxCol()-1)
+	@ MaxRow()-1,01 say padc("2печ 3уд 4рег 5корр 6поиск 7поиск ",MaxCol()-1) color sset[5]
+	@ MaxRow()-3,01 say "Наименование счета"
+	tb := TBrowseDb(03,01,MaxRow()-5,MaxCol()-1)
+	tb:AddColumn(TbColumnNew("" ,{|| str(Rasxod->Ent,4)+" "+S_Ent->Naim+" "+;
+								  str(Rasxod->Chet,4,0)+" "+str(Rasxod->Summa,13,2) } ))
+	Rasxod->(DbGoTop())
+	While ( .t. )
+	   nKey := 0
+	   While ( !tb:Stabilize() )
+		 if ( nKey := m_inkey() ) != 0 ; exit ; end
+	   end
+	   nRow := Row()
+	   @ MaxRow()-3,21 say S_Chet->Naim
+	   if nKey == 0 ; nKey := m_inkey(0)  ; end
+	   if nKey == K_ESC ; exit ; end
+	   if tb:Stable
+		do case
+		   Case nKey == K_F2  // Печать
+				nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
+				@ MaxRow()-1,01 say padc("Следите за печатью и бумагой",MaxCol()-1) color sset[5]
+				nRow := Rasxod->(Recno())
+				Rasxod->(DbGoTop())
+				Set Device to Print
+				@ prow()+1,01 say padc("Распечатка",57)
+				@ prow()+1,01 say padc("базы Ведомости расчета с потребителями",57)
+				@ prow()+1,01 say repl("-",57)
+				@ prow()+1,01 say "Код  Наименование организации        Счет      Сумма  "
+				@ prow()+1,01 say repl("-",57)
+				While ( !Rasxod->(eof()) )
+				  @ prow()+1,01 say str(Rasxod->Ent,4)+" "+S_Ent->Naim+" "+;
+									str(Rasxod->Chet,4,0)+" "+str(Rasxod->Summa,13,2)
+				  Rasxod->(DbSkip(1))
+				End
+				@ prow()+1,01 say repl("=",55)
+				@ prow()+1,01 say ""
+				Set Device to Screen
+				RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
+				Rasxod->(DbGoto(nRow))
+		   Case nKey == K_F6  // Поиск по ключу
+				SetCursor(1)
+				nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
+				@ MaxRow()-1,01 say padc(" ",MaxCol()-1)
+				nRow := 0
+				@ MaxRow()-1,03 say "Укажите код" get nRow pict "9999" valid nRow > 0
+				read
+				if LastKey() <> K_ESC
+				   Rasxod->(DbSeek(str(nRow,4),.t.))
+				   if Rasxod->(eof())
+					  S_Beep(1)  ;  tb:GoBottom()
+				   end
+				end
+				SetCursor(0)
+				RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
+				FreshOrder(tb)
+		   Case nKey == K_F7  // Поиск по наименованию
+				SetCursor(1)
+				nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
+				@ MaxRow()-1,01 say padc(" ",MaxCol()-1)
+				nRow := space(30)
+				@ MaxRow()-1,01 say "--->" get nRow
+				read
+				if LastKey() <> K_ESC
+				   DbSelectArea("S_Ent")
+				   if !S_Locate("Naim",Alltrim(S_Upper(nRow)))
+					  S_Err({" Данных не обнаружено "})
+					  DbSelectArea("Rasxod")
+				   else
+					  nSumma := S_Ent->Ent
+					  DbSelectArea("Rasxod")
+					  if !Rasxod->(DbSeek(str(nSumma)))
+						 S_Err({" Данных не обнаружено "})
+						 S_Beep(1)  ;  tb:GoBottom()
+					  End
+				   end
+				end
+				SetCursor(0)
+				RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
+				FreshOrder(tb)
+		   case nKey == K_F3  // Удаление
+			   if Rasxod->(Recno()) # 0 .and. S_Err({S_wRow()+1,S_wCol()+2,,;
+				 "Вы действительно","желаите удалить запись",;
+				 "и не пожалеите об этом?","% Да ; Нет ;"}) == 1 
+					 Rasxod->(DbDelete())   ;   nDelete++
+					 Rasxod->(DbSkip(1))
+					 if Rasxod->(eof()) ; Rasxod->(DbGoBottom()) ; end
+			   end
+			   FreshOrder(tb)
+		   case nKey == K_F4  // Регистрация
+			   tb:DeHilite()
+			   nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
+			   @ MaxRow()-1,01 say padc("Вставляйте записи",MaxCol()-1) color sset[5]
+			   nEnt := 0
+			   While ( .t. )
+				 Scroll(03,01,MaxRow()-5,MaxCol()-1,-1)
+				 @ 03,01 get nEnt Pict "9999" valid VedEnt(@nEnt,03,06)
+				 read
+				 if LastKey() == K_ESC ; Exit ; End
+				 nSumma := nChet := 0
+				 @ 03,42 get nChet pict "9999" Valid VedChet (@nChet,MaxRow()-3,21)
+				 read
+				 if LastKey() <> K_ESC
+					if Rasxod->(DbSeek(str(nEnt,4)+str(nChet,4,0)))
+						 @ 03,06 say padc(" Запись имеется Внимательней",30) Color sset[5]
+					  else
+						 @ 03,48 get nSumma pict "9999999999.99"
+						 read
+						 if LastKey() <> K_ESC
+							 Rasxod->(DbAppend()) ;  Rasxod->Chet  := nChet
+							 Rasxod->Ent := nEnt  ;  Rasxod->Summa := nSumma
+						 End
+					  End
+				 End
+			   End
+			   SetCursor(0)
+			   RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
+			   FreshOrder(tb)
+		   case nKey == K_F5  .and. Rasxod->Ent > 0  // Корретировка
+			   tb:DeHilite()
+			   nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
+			   SetCursor(1)
+			   @ MaxRow()-1,01 say padc("Корректируйте данные",MaxCol()-1) color sset[5]
+			   nSumma := if(nRegim==1,0,Rasxod->Summa)
+			   nChet  := Rasxod->Chet
+			   @ nRow,42 get nChet pict "9999" Valid VedChet(@nChet,MaxRow()-3,21)
+			   read
+			   if LastKey() <> K_ESC
+				  @ nRow,48 get nSumma pict "9999999999.99"
+				  read
+				  if LastKey() <> K_ESC
+					 Rasxod->Summa := nSumma
+					 Rasxod->Chet := nChet
+				  End
+			   End
+			   SetCursor(0)
+			   RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
+			   FreshOrder(tb)
+		   other
+			   ApplyKey(nkey,tb)
+		end  
+	   end
+	End
+	tb := Nil
+	S_wCloseSl(S_RanDom()%22+1)
+	Set relation to
+	if nDelete > 0  ;  pack  ; End
+	SetColor(ColorOld)
+	SetCursor(SursorOld)
+	Select(SelectOld)
 Return ( Nil )
 ////////////////////////////////////////////////////////////////////////
 Function VedPrixod()  // Ввод Прихода
-Local tb, ColorOld := SetColor(COLOR_BAZA),;
-      SelectOld := Select(), nKey, nRow, SursorOld := SetCursor(0),;
-      nEnt, nSumma, GetList := {}, nChet, nDelete := 0, nRegim := 1,;
-      aRegim := {"+"," "}
+	Local tb, ColorOld := SetColor(COLOR_BAZA),;
+		  SelectOld := Select(), nKey, nRow, SursorOld := SetCursor(0),;
+		  nEnt, nSumma, GetList := {}, nChet, nDelete := 0, nRegim := 1,;
+		  aRegim := {"+"," "}
 
-DbSelectArea("Prixod")
-Set relation to str(Prixod->Ent,4) into S_ENT,;
-             to str(Prixod->Chet,4,0) into S_CHET
-S_Open_M(01,01,22,56,,sset[2])
-@ 01,01 say "Код  Наименование организации          Сумма"
-@ 02,01 say Repl([─],MaxCol()-1)
-@ MaxRow()-2,01 say Repl([─],MaxCol()-1)
-@ MaxRow()-4,01 say Repl([─],MaxCol()-1)
-@ MaxRow(),01 say padc("2печ 3уд 4рег 5корр 6поиск 7поиск ",MaxCol()-1) color sset[5]
-@ MaxRow()-3,01 say "Cчет ..... .............................. Док-т ....."
-@ MaxRow()-2,01 say "Количество .......... Цена ....... ..cум ............."
-@ MaxRow()-1,01 say "Ндс ............. ПРс ............. Банк ............."
-tb := TBrowseDb(03,01,MaxRow()-5,MaxCol()-1)
-tb:AddColumn(TbColumnNew("" ,{|| str(Prixod->Ent,4)+" "+S_Ent->Naim+" "+;
-                              str(Prixod->Summa,13,2) } ))
-Prixod->(DbGoTop())
-While ( .t. )
-   nKey := 0
-   While ( !tb:Stabilize() )
-     if ( nKey := m_inkey() ) != 0 ; exit ; end
-   end
-   nRow := Row()
-   @ MaxRow()-3,06 say Prixod->Chet pict "9999"
-   @ MaxRow()-3,12 say S_Chet->Naim
-   @ MaxRow()-3,49 say Prixod->Npp pict "99999"
-   @ MaxRow()-2,12 say Prixod->Kolvo pict "9999999999"
-   @ MaxRow()-2,28 say Prixod->Cena  pict "999.999999"
-   @ MaxRow()-2,42 say Prixod->Sum   pict "9999999999.99"
-   @ MaxRow()-1,05 say Prixod->Ndc   pict "9999999999.99"
-   @ MaxRow()-1,23 say Prixod->Fec   pict "9999999999.99"
-   @ MaxRow()-1,42 say Prixod->SumBank pict "9999999999.99"
-   if nKey == 0 ; nKey := m_inkey(0)  ; end
-   if nKey == K_ESC ; exit ; end
-   if tb:Stable
-    do case
-       Case nKey == K_F2  // Печать
-            nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
-            @ MaxRow()-1,01 say padc("Следите за печатью и бумагой",MaxCol()-1) color sset[5]
-            nRow := Prixod->(Recno())
-            Prixod->(DbGoTop())
-            Set Device to Print
-            @ prow()+1,01 say padc("Распечатка",57)
-            @ prow()+1,01 say padc("базы Ведомости расчета с потребителями",57)
-            @ prow()+1,01 say repl("-",57)
-            @ prow()+1,01 say "Код  Наименование организации        Счет      Сумма  "
-            @ prow()+1,01 say repl("-",57)
-            While ( !Prixod->(eof()) )
-              @ prow()+1,01 say str(Prixod->Ent,4)+" "+S_Ent->Naim+" "+;
-                                str(Prixod->Chet,4,0)+" "+str(Prixod->Summa,13,2)
-              Prixod->(DbSkip(1))
-            End
-            @ prow()+1,01 say repl("=",55)
-            @ prow()+1,01 say ""
-            Set Device to Screen
-            RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
-            Prixod->(DbGoto(nRow))
-       Case nKey == K_F6  // Поиск по ключу
-            SetCursor(1)
-            nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
-            @ MaxRow()-1,01 say padc(" ",MaxCol()-1)
-            nRow := 0
-            @ MaxRow()-1,03 say "Укажите код" get nRow pict "9999" valid nRow > 0
-            read
-            if LastKey() <> K_ESC
-               Prixod->(DbSeek(str(nRow,4),.t.))
-               if Prixod->(eof())
-                  S_Beep(1)  ;  tb:GoBottom()
-               end
-            end
-            SetCursor(0)
-            RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
-            FreshOrder(tb)
-       Case nKey == K_F7  // Поиск по наименованию
-            SetCursor(1)
-            nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
-            @ MaxRow()-1,01 say padc(" ",MaxCol()-1)
-            nRow := space(30)
-            @ MaxRow()-1,01 say "--->" get nRow
-            read
-            if LastKey() <> K_ESC
-               DbSelectArea("S_Ent")
-               if !S_Locate("Naim",Alltrim(S_Upper(nRow)))
-                  S_Err({" Данных не обнаружено "})
-                  DbSelectArea(Prixod)
-               else
-                  nSumma := S_Ent->Ent
-                  DbSelectArea(Prixod)
-                  if !Prixod->(DbSeek(str(nSumma)))
-                     S_Err({" Данных не обнаружено "})
-                     S_Beep(1)  ;  tb:GoBottom()
-                  End
-               end
-            end
-            SetCursor(0)
-            RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
-            FreshOrder(tb)
-       case nKey == K_F3  // Удаление
-           if Prixod->(Recno()) # 0 .and. S_Err({S_wRow()+1,S_wCol()+2,,;
-             "Вы действительно","желаите удалить запись",;
-             "и не пожалеите об этом?","% Да ; Нет ;"}) == 1 
-                 Prixod->(DbDelete())   ;   nDelete++
-                 Prixod->(DbSkip(1))
-                 if Prixod->(eof()) ; Prixod->(DbGoBottom()) ; end
-           end
-           FreshOrder(tb)
-       case nKey == K_F4  // Регистрация
-           tb:DeHilite()
-           nKey := SaveScreen(MaxRow(),01,MaxRow(),MaxCol()-1)
-           @ MaxRow(),01 say padc("Вставляйте записи",MaxCol()-1) color sset[5]
-           nEnt := 0
-           While ( .t. )
-             Scroll(03,01,MaxRow()-5,MaxCol()-1,-1)
-             @ 03,01 get nEnt Pict "9999" valid VedEnt(@nEnt,03,06)
-             read
-             if LastKey() == K_ESC ; Exit ; End
-             S_Ent->(Dbseek(str(nEnt,4)))
-             nSumma := nChet := nSum := nNpp := nKolvo := 0
-             @ MaxRow()-3,06 get nChet pict "9999" Valid VedChet(@nChet,MaxRow()-3,12)
-             read
-             if LastKey() == K_ESC ; Loop ; End
-             S_Price->(DbSeek(str(nChet,4,0)+str(S_Ent->Tip,1)))
-             pNdc := S_Price->Ndc
-             pFec := S_Price->Fec
-             nCena:= S_Price->Cena
-             nBank:= 0
-             @ MaxRow()-3,49 get nNpp pict "99999" 
-             @ MaxRow()-2,12 get nKolvo pict "9999999999" 
-             @ MaxRow()-2,28 get nCena  pict "999.999999" 
-             read
-             if LastKey() == K_ESC ; Loop ; End
-             nSum := NEW_ROUND(nKolvo*nCena,2)
-             @ MaxRow()-2,42 get nSum   pict "9999999999.99"
-             read
-             if LastKey() == K_ESC ; Loop ; End
-             nNdc := NEW_ROUND(pNdc*nSum,2)
-             nFec := NEW_ROUND(pFec*nSum,2)
-             @ MaxRow()-1,05 get nNdc   pict "9999999999.99"
-             @ MaxRow()-1,23 get nFec   pict "9999999999.99"
-             read
-             if LastKey() == K_ESC ; Loop ; End
-             nSumma := nSum + nNdc + nFec
-             @ 03,42 get nSumma pict "9999999999.99"
-             read
-             if LastKey() == K_ESC ; Loop ; End
-             @ MaxRow()-1,42 get nBank pict "9.999" range 0,1
-             read
-             if LastKey() == K_ESC ; Loop ; End
-             Prixod->(DbAppend())
-             Prixod->Chet  := nChet
-             Prixod->Ent   := nEnt
-             Prixod->Sum   := nSum
-             Prixod->Kolvo := nKolvo
-             Prixod->Cena  := nCena
-             Prixod->Ndc   := nNdc
-             Prixod->Fec   := nFec
-             Prixod->Npp   := nNpp
-             Prixod->SumBank := NEW_ROUND(nSumma*nBank,2)
-             Prixod->Summa   := nSumma + Prixod->SumBank
-           End
-           SetCursor(0)
-           RestScreen(MaxRow(),01,MaxRow(),MaxCol()-1,nKey)            
-           FreshOrder(tb)
-       case nKey == K_F5  .and. Prixod->Ent > 0  // Корретировка
-           tb:DeHilite()
-           nKey := SaveScreen(MaxRow(),01,MaxRow(),MaxCol()-1)
-           SetCursor(1)
-           @ MaxRow(),01 say padc("Корректируйте данные",MaxCol()-1) color sset[5]
-       pNdc:=0.2
-           nSumma := Prixod->Summa
-           nSum   := Prixod->Sum
-           nKolvo := Prixod->Kolvo 
-           nCena  := Prixod->Cena
-           nNdc   := Prixod->Ndc 
-           nFec   := Prixod->Fec
-           nNpp   := Prixod->Npp
-           nChet  := Prixod->Chet 
-           nBank  := NEW_ROUND(Prixod->SumBank/Prixod->Summa,3)
-           S_Ent->(Dbseek(str(Prixod->Ent,4)))
-           BEGIN SEQUENCE
-           @ MaxRow()-3,06 get nChet pict "9999" Valid VedChet(@nChet,MaxRow()-3,12)
-           @ MaxRow()-3,49 get nNpp pict "99999" 
-           @ MaxRow()-2,12 get nKolvo pict "9999999999" 
-           @ MaxRow()-2,28 get nCena  pict "999.999999" 
-           read
-           if LastKey() == K_ESC ; break ; End
-           nSum := NEW_ROUND(nKolvo*nCena,2)
-           @ MaxRow()-2,42 get nSum   pict "9999999999.99"
-           read
-           if LastKey() == K_ESC ; break ; End
-            nNdc := NEW_ROUND(pNdc*nSum,2)
-           @ MaxRow()-1,05 get nNdc   pict "9999999999.99"
-           @ MaxRow()-1,23 get nFec   pict "9999999999.99"
-           read
-           if LastKey() == K_ESC ; Break ; End
-           nSumma := nSum + nNdc + nFec
-           @ nRow,42 get nSumma pict "9999999999.99"
-           read
-           if LastKey() == K_ESC ; Break ; End
-           @ MaxRow()-1,42 get nBank pict "9.999" range 0,1
-           read
-           if LastKey() == K_ESC ; Break ; End
-           Prixod->Chet  := nChet
-           Prixod->Sum   := nSum
-           Prixod->Kolvo := nKolvo
-           Prixod->Cena  := nCena
-           Prixod->Ndc   := nNdc
-           Prixod->Fec   := nFec
-           Prixod->Npp   := nNpp
-           Prixod->SumBank := NEW_ROUND(nSumma*nBank,2)           
-           Prixod->Summa   := nSumma + Prixod->SumBank
-           END SEQUENCE
-           SetCursor(0)
-           RestScreen(MaxRow(),01,MaxRow(),MaxCol()-1,nKey)            
-           FreshOrder(tb)
-       other
-           ApplyKey(nkey,tb)
-    end  
-   end
-End
-tb := Nil
-S_wCloseSl(S_RanDom()%22+1)
-Set relation to
-if nDelete > 0  ;  pack  ; End
-SetColor(ColorOld)
-SetCursor(SursorOld)
-Select(SelectOld)
+	DbSelectArea("Prixod")
+	Set relation to str(Prixod->Ent,4) into S_ENT,;
+				 to str(Prixod->Chet,4,0) into S_CHET
+	S_Open_M(01,01,22,56,,sset[2])
+	@ 01,01 say "Код  Наименование организации          Сумма"
+	@ 02,01 say Repl([─],MaxCol()-1)
+	@ MaxRow()-2,01 say Repl([─],MaxCol()-1)
+	@ MaxRow()-4,01 say Repl([─],MaxCol()-1)
+	@ MaxRow(),01 say padc("2печ 3уд 4рег 5корр 6поиск 7поиск ",MaxCol()-1) color sset[5]
+	@ MaxRow()-3,01 say "Cчет ..... .............................. Док-т ....."
+	@ MaxRow()-2,01 say "Количество .......... Цена ....... ..cум ............."
+	@ MaxRow()-1,01 say "Ндс ............. ПРс ............. Банк ............."
+	tb := TBrowseDb(03,01,MaxRow()-5,MaxCol()-1)
+	tb:AddColumn(TbColumnNew("" ,{|| str(Prixod->Ent,4)+" "+S_Ent->Naim+" "+;
+								  str(Prixod->Summa,13,2) } ))
+	Prixod->(DbGoTop())
+	While ( .t. )
+	   nKey := 0
+	   While ( !tb:Stabilize() )
+		 if ( nKey := m_inkey() ) != 0 ; exit ; end
+	   end
+	   nRow := Row()
+	   @ MaxRow()-3,06 say Prixod->Chet pict "9999"
+	   @ MaxRow()-3,12 say S_Chet->Naim
+	   @ MaxRow()-3,49 say Prixod->Npp pict "99999"
+	   @ MaxRow()-2,12 say Prixod->Kolvo pict "9999999999"
+	   @ MaxRow()-2,28 say Prixod->Cena  pict "999.999999"
+	   @ MaxRow()-2,42 say Prixod->Sum   pict "9999999999.99"
+	   @ MaxRow()-1,05 say Prixod->Ndc   pict "9999999999.99"
+	   @ MaxRow()-1,23 say Prixod->Fec   pict "9999999999.99"
+	   @ MaxRow()-1,42 say Prixod->SumBank pict "9999999999.99"
+	   if nKey == 0 ; nKey := m_inkey(0)  ; end
+	   if nKey == K_ESC ; exit ; end
+	   if tb:Stable
+		do case
+		   Case nKey == K_F2  // Печать
+				nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
+				@ MaxRow()-1,01 say padc("Следите за печатью и бумагой",MaxCol()-1) color sset[5]
+				nRow := Prixod->(Recno())
+				Prixod->(DbGoTop())
+				Set Device to Print
+				@ prow()+1,01 say padc("Распечатка",57)
+				@ prow()+1,01 say padc("базы Ведомости расчета с потребителями",57)
+				@ prow()+1,01 say repl("-",57)
+				@ prow()+1,01 say "Код  Наименование организации        Счет      Сумма  "
+				@ prow()+1,01 say repl("-",57)
+				While ( !Prixod->(eof()) )
+				  @ prow()+1,01 say str(Prixod->Ent,4)+" "+S_Ent->Naim+" "+;
+									str(Prixod->Chet,4,0)+" "+str(Prixod->Summa,13,2)
+				  Prixod->(DbSkip(1))
+				End
+				@ prow()+1,01 say repl("=",55)
+				@ prow()+1,01 say ""
+				Set Device to Screen
+				RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
+				Prixod->(DbGoto(nRow))
+		   Case nKey == K_F6  // Поиск по ключу
+				SetCursor(1)
+				nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
+				@ MaxRow()-1,01 say padc(" ",MaxCol()-1)
+				nRow := 0
+				@ MaxRow()-1,03 say "Укажите код" get nRow pict "9999" valid nRow > 0
+				read
+				if LastKey() <> K_ESC
+				   Prixod->(DbSeek(str(nRow,4),.t.))
+				   if Prixod->(eof())
+					  S_Beep(1)  ;  tb:GoBottom()
+				   end
+				end
+				SetCursor(0)
+				RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
+				FreshOrder(tb)
+		   Case nKey == K_F7  // Поиск по наименованию
+				SetCursor(1)
+				nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
+				@ MaxRow()-1,01 say padc(" ",MaxCol()-1)
+				nRow := space(30)
+				@ MaxRow()-1,01 say "--->" get nRow
+				read
+				if LastKey() <> K_ESC
+				   DbSelectArea("S_Ent")
+				   if !S_Locate("Naim",Alltrim(S_Upper(nRow)))
+					  S_Err({" Данных не обнаружено "})
+					  DbSelectArea(Prixod)
+				   else
+					  nSumma := S_Ent->Ent
+					  DbSelectArea(Prixod)
+					  if !Prixod->(DbSeek(str(nSumma)))
+						 S_Err({" Данных не обнаружено "})
+						 S_Beep(1)  ;  tb:GoBottom()
+					  End
+				   end
+				end
+				SetCursor(0)
+				RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)            
+				FreshOrder(tb)
+		   case nKey == K_F3  // Удаление
+			   if Prixod->(Recno()) # 0 .and. S_Err({S_wRow()+1,S_wCol()+2,,;
+				 "Вы действительно","желаите удалить запись",;
+				 "и не пожалеите об этом?","% Да ; Нет ;"}) == 1 
+					 Prixod->(DbDelete())   ;   nDelete++
+					 Prixod->(DbSkip(1))
+					 if Prixod->(eof()) ; Prixod->(DbGoBottom()) ; end
+			   end
+			   FreshOrder(tb)
+		   case nKey == K_F4  // Регистрация
+			   tb:DeHilite()
+			   nKey := SaveScreen(MaxRow(),01,MaxRow(),MaxCol()-1)
+			   @ MaxRow(),01 say padc("Вставляйте записи",MaxCol()-1) color sset[5]
+			   nEnt := 0
+			   While ( .t. )
+			     // Запрашиваем код организации
+				 Scroll(03,01,MaxRow()-5,MaxCol()-1,-1)
+				 @ 03,01 get nEnt Pict "9999" valid VedEnt(@nEnt,03,06)
+				 read
+				 if LastKey() == K_ESC ; Exit ; End
+				 S_Ent->(Dbseek(str(nEnt,4)))
+				 nSumma := nChet := nSum := nNpp := nKolvo := 0
+			     // Запрашиваем счет
+				 @ MaxRow()-3,06 get nChet pict "9999" Valid VedChet(@nChet,MaxRow()-3,12)
+				 read
+				 if LastKey() == K_ESC ; Loop ; End
+				 // Подтягиваем цену
+				 S_Price->(DbSeek(str(nChet,4,0)+str(S_Ent->Tip,1)))
+				 pNdc := S_Price->Ndc
+				 pFec := S_Price->Fec
+				 nCena:= S_Price->Cena
+				 nBank:= 0
+				 // Выводим/корркктируем цену, запрашиваем документ и количество
+				 @ MaxRow()-3,49 get nNpp pict "99999" 
+				 @ MaxRow()-2,12 get nKolvo pict "9999999999" 
+				 @ MaxRow()-2,28 get nCena  pict "999.999999" 
+				 read
+				 if LastKey() == K_ESC ; Loop ; End
+				 nSum := NEW_ROUND(nKolvo*nCena,2)
+				 @ MaxRow()-2,42 get nSum   pict "9999999999.99"
+				 read
+				 if LastKey() == K_ESC ; Loop ; End
+				 nNdc := NEW_ROUND(pNdc*nSum,2)
+				 nFec := NEW_ROUND(pFec*nSum,2)
+				 @ MaxRow()-1,05 get nNdc   pict "9999999999.99"
+				 @ MaxRow()-1,23 get nFec   pict "9999999999.99"
+				 read
+				 if LastKey() == K_ESC ; Loop ; End
+				 nSumma := nSum + nNdc + nFec
+				 @ 03,42 get nSumma pict "9999999999.99"
+				 read
+				 if LastKey() == K_ESC ; Loop ; End
+				 @ MaxRow()-1,42 get nBank pict "9.999" range 0,1
+				 read
+				 if LastKey() == K_ESC ; Loop ; End
+				 Prixod->(DbAppend())
+				 Prixod->Chet  := nChet
+				 Prixod->Ent   := nEnt
+				 Prixod->Sum   := nSum
+				 Prixod->Kolvo := nKolvo
+				 Prixod->Cena  := nCena
+				 Prixod->Ndc   := nNdc
+				 Prixod->Fec   := nFec
+				 Prixod->Npp   := nNpp
+				 Prixod->SumBank := NEW_ROUND(nSumma*nBank,2)
+				 Prixod->Summa   := nSumma + Prixod->SumBank
+			   End
+			   SetCursor(0)
+			   RestScreen(MaxRow(),01,MaxRow(),MaxCol()-1,nKey)            
+			   FreshOrder(tb)
+		   case nKey == K_F5  .and. Prixod->Ent > 0  // Корретировка
+			   tb:DeHilite()
+			   nKey := SaveScreen(MaxRow(),01,MaxRow(),MaxCol()-1)
+			   SetCursor(1)
+			   @ MaxRow(),01 say padc("Корректируйте данные",MaxCol()-1) color sset[5]
+		   pNdc:=0.2
+			   nSumma := Prixod->Summa
+			   nSum   := Prixod->Sum
+			   nKolvo := Prixod->Kolvo 
+			   nCena  := Prixod->Cena
+			   nNdc   := Prixod->Ndc 
+			   nFec   := Prixod->Fec
+			   nNpp   := Prixod->Npp
+			   nChet  := Prixod->Chet 
+			   nBank  := NEW_ROUND(Prixod->SumBank/Prixod->Summa,3)
+			   S_Ent->(Dbseek(str(Prixod->Ent,4)))
+			   BEGIN SEQUENCE
+			   @ MaxRow()-3,06 get nChet pict "9999" Valid VedChet(@nChet,MaxRow()-3,12)
+			   @ MaxRow()-3,49 get nNpp pict "99999" 
+			   @ MaxRow()-2,12 get nKolvo pict "9999999999" 
+			   @ MaxRow()-2,28 get nCena  pict "999.999999" 
+			   read
+			   if LastKey() == K_ESC ; break ; End
+			   nSum := NEW_ROUND(nKolvo*nCena,2)
+			   @ MaxRow()-2,42 get nSum   pict "9999999999.99"
+			   read
+			   if LastKey() == K_ESC ; break ; End
+				nNdc := NEW_ROUND(pNdc*nSum,2)
+			   @ MaxRow()-1,05 get nNdc   pict "9999999999.99"
+			   @ MaxRow()-1,23 get nFec   pict "9999999999.99"
+			   read
+			   if LastKey() == K_ESC ; Break ; End
+			   nSumma := nSum + nNdc + nFec
+			   @ nRow,42 get nSumma pict "9999999999.99"
+			   read
+			   if LastKey() == K_ESC ; Break ; End
+			   @ MaxRow()-1,42 get nBank pict "9.999" range 0,1
+			   read
+			   if LastKey() == K_ESC ; Break ; End
+			   Prixod->Chet  := nChet
+			   Prixod->Sum   := nSum
+			   Prixod->Kolvo := nKolvo
+			   Prixod->Cena  := nCena
+			   Prixod->Ndc   := nNdc
+			   Prixod->Fec   := nFec
+			   Prixod->Npp   := nNpp
+			   Prixod->SumBank := NEW_ROUND(nSumma*nBank,2)           
+			   Prixod->Summa   := nSumma + Prixod->SumBank
+			   END SEQUENCE
+			   SetCursor(0)
+			   RestScreen(MaxRow(),01,MaxRow(),MaxCol()-1,nKey)            
+			   FreshOrder(tb)
+		   other
+			   ApplyKey(nkey,tb)
+		end  
+	   end
+	End
+	tb := Nil
+	S_wCloseSl(S_RanDom()%22+1)
+	Set relation to
+	if nDelete > 0  ;  pack  ; End
+	SetColor(ColorOld)
+	SetCursor(SursorOld)
+	Select(SelectOld)
 Return ( Nil )
 ////////////////////////////////////////////////////////////////////////
