@@ -188,8 +188,8 @@ While ( .t. )
             S_Gr->(DbGoto(nRow))
        case nKey == K_F3  // Удаление
            if S_Ent->(Recno()) # 0 .and. S_Err({S_wRow()+1,S_wCol()+2,,;
-             "Вы действительно","желаите удалить запись",;
-             "и не пожалеите об этом?","% Да ; Нет ;"}) == 1 
+             "Вы действительно","желаете удалить запись",;
+             "и не пожалеете об этом?","% Да ; Нет ;"}) == 1 
                  S_Gr->(DbDelete())   ; nDelete++
                  S_Gr->(DbSkip(1))
                  if S_Gr->(eof()) ; S_Gr->(DbGoBottom()) ; end
@@ -355,8 +355,8 @@ While ( .t. )
             FreshOrder(tb)
        case nKey == K_F3  // Удаление
            if S_Ent->(Recno()) # 0 .and. S_Err({S_wRow()+1,S_wCol()+2,,;
-             "Вы действительно","желаите удалить запись",;
-             "и не пожалеите об этом?","% Да ; Нет ;"}) == 1 
+             "Вы действительно","желаете удалить запись",;
+             "и не пожалеете об этом?","% Да ; Нет ;"}) == 1 
                  S_Ent->(DbDelete())   ; nDelete++
                  S_Ent->(DbSkip(1))
                  if S_Ent->(eof()) ; S_Ent->(DbGoBottom()) ; end
@@ -598,8 +598,8 @@ While ( .t. )
             FreshOrder(tb)
        case nKey == K_F3  // Удаление
            if S_Chet->(Recno()) # 0 .and. S_Err({S_wRow()+1,S_wCol()+2,,;
-             "Вы действительно","желаите удалить запись",;
-             "и не пожалеите об этом?","% Да ; Нет ;"}) == 1 
+             "Вы действительно","желаете удалить запись",;
+             "и не пожалеете об этом?","% Да ; Нет ;"}) == 1 
                  S_Chet->(DbDelete())  ;  nDelete++
                  S_Chet->(DbSkip(1))
                  if S_Chet->(eof()) ; S_Chet->(DbGoBottom()) ; end
@@ -804,8 +804,8 @@ Function VedRasxod()  // Ввод расхода
 				FreshOrder(tb)
 		   case nKey == K_F3  // Удаление
 			   if Rasxod->(Recno()) # 0 .and. S_Err({S_wRow()+1,S_wCol()+2,,;
-				 "Вы действительно","желаите удалить запись",;
-				 "и не пожалеите об этом?","% Да ; Нет ;"}) == 1 
+				 "Вы действительно","желаете удалить запись",;
+				 "и не пожалеете об этом?","% Да ; Нет ;"}) == 1 
 					 Rasxod->(DbDelete())   ;   nDelete++
 					 Rasxod->(DbSkip(1))
 					 if Rasxod->(eof()) ; Rasxod->(DbGoBottom()) ; end
@@ -978,8 +978,8 @@ Function VedPrixod()  // Ввод Прихода
 				FreshOrder(tb)
 		   case nKey == K_F3  // Удаление
 			   if Prixod->(Recno()) # 0 .and. S_Err({S_wRow()+1,S_wCol()+2,,;
-				 "Вы действительно","желаите удалить запись",;
-				 "и не пожалеите об этом?","% Да ; Нет ;"}) == 1 
+				 "Вы действительно","желаете удалить запись",;
+				 "и не пожалеете об этом?","% Да ; Нет ;"}) == 1 
 					 Prixod->(DbDelete())   ;   nDelete++
 					 Prixod->(DbSkip(1))
 					 if Prixod->(eof()) ; Prixod->(DbGoBottom()) ; end
