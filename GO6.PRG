@@ -347,11 +347,12 @@ Static function OpenBaza()
 		//  Ценник
 		if !File(cDir+"S_PRICE.DBF")
 		   fErase(cDir+"S_PRICE.NTX")
-		   DbCreate(cDir+"S_PRICE",{ {"Chet",  "N",04,00},;   // код счета
-									 {"Tip",   "N",01,00},;   // Тип
-									 {"Cena","N",12,06},;   // Цена
-									 {"Ndc", "N",12,06},;   // % Ндс
-									 {"Fec", "N",12,06} })  // % ФЕС
+		   DbCreate(cDir+"S_PRICE",{ {"CHET",  "N",04,00},; // код счета
+									 {"TIP",   "N",01,00},; // Тип
+									 {"CENA","N",12,02},;   // Цена
+									 {"PCNDS","N",03,0},;   // % Ндс
+									 {"NDSINC","L",01,0} }) // Включает НДС? 
+//									 {"Fec", "N",12,06} })  // % ФЕС
 		end
 		use (cDir+"S_PRICE") new
 		if !File(cDir+"S_PRICE.NTX")
@@ -382,16 +383,16 @@ Static function OpenBaza()
 		//  база ведомости РАСЧЕТ С ПОТРЕБИТЕЛЯМИ по ПРИХОДУ
 		if !File(cDir+"PRIXOD.DBF")
 		   fErase(cDir+"PRIXOD.NTX")
-		   DbCreate(cDir+"PRIXOD",{ {"Ent",  "N",04,00},;   // код организации
-									{"Chet", "N",04,00},;   // счет
-									{"Npp",  "N",05,00},;   // N счета
-									{"Kolvo","N",10,00},;   // Количество
-									{"Cena", "N",12,06},;   // Цена
-									{"Sum",  "N",13,02},;   // Сумма без Ндс
-									{"Ndc",  "N",13,02},;   // Ндс
-									{"Fec",  "N",13,02},;   // ФЕС
-									{"SumBank","N",13,02},; // Сумма по банку
-									{"Summa","N",13,02} })  // сумма с Ндс
+		   DbCreate(cDir+"PRIXOD",{ {"ENT",  "N",04,00},;      // код организации
+									{"CHET", "N",04,00},;      // счет
+									{"NPP",  "N",05,00},;      // N счета
+									{"KOLVO","N",10,00},;      // Количество
+									{"CENA","N",12,02},;       // Цена
+									{"PCNDS","N",03,0},;       // % Ндс
+									{"NDSINC","L",01,0},;      // Включает НДС? 
+									{"SUMMA",  "N",13,02},;    // Сумма
+									{"SUMNDS",  "N",13,02},;   // Сумма Ндс
+									{"SumBank","N",13,02} })     // Сумма по банку
 		end
 		use (cDir+"PRIXOD") new
 		if !File(cDir+"PRIXOD.NTX")
@@ -415,14 +416,15 @@ Static function OpenBaza()
 		//  база ПЛАТЕЖНЫХ ПОРУЧЕНИЙ
 		if !File(cDir+"PLPOR.DBF")
 		   fErase(cDir+"PLPOR.NTX")
-		   DbCreate(cDir+"PLPOR",{ {"PlPor",  "N",06,00},;   // Номер
-								   {"GodPor", "N",04,00},;   // Год
-								   {"DataPor","D",08,00},;   // Дата
-								   {"EntPor", "N",04,00},;   // Код организации
-								   {"SumPor", "N",15,02},;   // Сумма
-								   {"Text1",  "C",45,00},;   // Текст
-								   {"Text2",  "C",45,00},;   // Текст
-								   {"Ndc",    "N",15,02} })  // сумма НДС
+		   DbCreate(cDir+"PLPOR",{ {"PlPor",  "N",06,00},;      // Номер
+								   {"GodPor", "N",04,00},;      // Год
+								   {"DataPor","D",08,00},;      // Дата
+								   {"EntPor", "N",04,00},;      // Код организации
+								   {"SumPor", "N",15,02},;      // Сумма
+								   {"NDSINC","L",01,0},;        // Включает НДС? 
+								   {"Text1",  "C",45,00},;      // Текст
+								   {"Text2",  "C",45,00},;      // Текст
+								   {"SUMNDS",    "N",15,02} })  // сумма НДС
 		end
 		use (cDir+"PlPor") new
 		if !File(cDir+"PlPor.NTX")
@@ -466,13 +468,15 @@ Static function OpenBaza()
 								  {"Ent",    "N",04,00},;   // организация
 								  {"EdIzm",  "C",07,00},;   // ед изм
 								  {"Kolvo",  "N",10,00},;   // кол-во
-								  {"Cena",   "N",12,06},;   // Цена
+								  {"CENA","N",12,02},;      // Цена
+								  {"PCNDS","N",03,0},;      // % Ндс
+								  {"NDSINC","L",01,0},;     // Включает НДС? 
 								  {"Naim",   "C",30,00},;   // наименование
-								  {"Summa",  "N",15,02},;   // сумма
-								  {"Ndc",    "N",15,02},;   // Ндс
+								  {"SUMMA",  "N",15,02},;   // сумма
+								  {"SUMNDS", "N",15,02},;   // Сумма НДС
 								  {"Chet",   "N",04,00},;   // счет
 								  {"Fec",    "N",13,02},;   // ФЕС
-								  {"SumBank","N",13,02},; // Сумма по банку
+								  {"SumBank","N",13,02},;   // Сумма по банку
 								  {"Sposob", "C",25,00} })  // способ
 		end
 		use (cDir+"Fakt") new
