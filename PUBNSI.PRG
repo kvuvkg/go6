@@ -3,137 +3,142 @@
 #include "Inkey.ch"
 /////////////////////////////////////////////////////////////////////////////
 Function VedPrice()
-Local tb, ColorOld, SelectOld := Select(), SursorOld,nKey, nRow, GetList := {}
-Local nDelete := 0, nChet, nTip, nCena, nNdc, nFec
+	Local tb, ColorOld, SelectOld := Select(), SursorOld,nKey, nRow, GetList := {}
+	Local nDelete := 0
+	LOCAL nChet, nTip, nCena, nPcNds, lNdsInc
 
-ColorOld := SetColor(COLOR_NSI)
-SursorOld := SetCursor(0)
-DbSelectArea("S_Price")
-Set Relation to str(Chet,5,2) into S_CHET,;
-             to str(Tip,1) into S_GR
-S_Open_M(03,32,22,68,,sset[2])
-@ 01,01 say "Счет Тип       Цена   % Ндс % ФЭС"
-@ 02,01 say Repl([─],MaxCol()-1)
-@ MaxRow()-2,01 say Repl([─],MaxCol()-1)
-@ MaxRow()-5,01 say Repl([─],MaxCol()-1)
-@ MaxRow()-4,01 say "Счет"
-@ MaxRow()-3,01 say "Тип орг."
-@ MaxRow()-1,01 say padc("2печ 3уд 4рег 5корр ",MaxCol()-1) color sset[5]
-tb := TBrowseDb(03,01,MaxRow()-6,MaxCol()-1)
-tb:AddColumn(TbColumnNew("" ,{|| str(S_Price->Chet,4,0)+" "+str(S_Price->Tip,1)+" "+;
-  str(S_Price->Cena,15,6)+" "+str(S_Price->Ndc,6,3)+" "+str(S_Price->Fec,6,3) }))
-S_Price->(DbGoTop())
-While ( .t. )
-   nKey := 0
-   While ( !tb:Stabilize() )
-     if ( nKey := m_inkey() ) != 0 ; exit ; end
-   end
-   nRow := Row()
-   @ MaxRow()-4,06 say S_Chet->Naim
-   @ MaxRow()-3,11 say S_Gr->Naim
-   if nKey == 0 ; nKey := m_inkey(0)  ; end
-   if nKey == K_ESC ; exit ; end
-   if tb:Stable
-    do case
-       Case nKey == K_F2  // Печать
-            nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
-            @ MaxRow()-1,01 say padc("Следите за печатью и бумагой",MaxCol()-1) color sset[5]
-            nRow := S_Price->(Recno())
-            S_Price->(DbGoTop())
-            Set Device to Print
-            @ prow()+1,01 say padc("Распечатка",35)
-            @ prow()+1,01 say padc("Ценник",35)
-            @ prow()+1,01 say repl("-",35)
-            @ prow()+1,01 say "Счет Тип       Цена   % Ндс % ФЭС"
-            @ prow()+1,01 say repl("-",25)
-            While ( !S_Price->(eof()) )
-              @ prow()+1,01 say  str(S_Price->Chet,4,0)+" "+str(S_Price->Tip,1)+" "+;
-                                 str(S_Price->Cena,15,6)+" "+str(S_Price->Ndc,6,3)+" "+;
-                                 str(S_Price->Fec,6,3) 
-
-              S_Price->(DbSkip(1))
-            End
-            @ prow()+1,01 say repl("=",35)
-            @ prow()+1,01 say ""
-            Set Device to Screen
-            RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)
-            S_Gr->(DbGoto(nRow))
-       case nKey == K_F3  // Удаление
-           if S_Price->(Recno()) # 0 .and. S_Err({S_wRow()+1,S_wCol()+2,,;
-             "Вы действительно","желаите удалить запись",;
-             "и не пожалеите об этом?","% Да ; Нет ;"}) == 1 
-                 S_Price->(DbDelete())   ; nDelete++
-                 S_Price->(DbSkip(1))
-                 if S_Price->(eof()) ; S_Price->(DbGoBottom()) ; end
-           end
-           FreshOrder(tb)
-       case nKey == K_F4  // Регистрация
-           tb:DeHilite()
-           nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
-           @ MaxRow()-1,01 say padc("Регистрируйте запись",MaxCol()-1) color sset[5]
-           BEGIN SEQUENCE
-			   @ 03,01 say padc(" ",MaxCol()-1)
-			   nChet := nTip := 0
-			   SetCursor(1)
-			   @ 03,01 get nChet pict "9999"  Valid VedChet(@nChet,MaxRow()-4,06)
-			   @ 03,07 get nTip pict "9"  valid VedGr(@nTip,MaxRow()-3,11)
-			   read
-			   if LastKey() == K_ESC ; break ; End
-			   if S_Price->(DbSeek(str(nChet,4,0)+str(nTip,1)))
-				 S_Beep()
-				 @ 03,09 say " Уже имеется"
-				 M_Inkey(3)
-				 break
-			   End
-			   nCena := nNdc := nFec := 0
-			   @ 03,09 get nCena pict "9999999999.999999" valid nCena > 0
-			   @ 03,26 get nNdc  pict "99.999" valid nNdc >= 0
-			   @ 03,33 get nFec  pict "99.999" valid nFec >= 0
-			   read
-			   if LastKey() == K_ESC ; break ; End
-			   S_Price->(DbAppend())
-			   S_Price->Tip  := nTip
-			   S_Price->Chet := nChet
-			   S_Price->Cena := nCena
-			   S_Price->Ndc  := nNdc
-			   S_Price->Fec  := nFec
-           END SEQUENCE
-           SetCursor(0)
-           RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)
-           FreshOrder(tb)
-       case nKey == K_F5  // Корретировка
-           tb:DeHilite()
-           nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
-           @ MaxRow()-1,01 say padc("Корректируйте данные",MaxCol()-1) color sset[5]
-           BEGIN SEQUENCE
-			   SetCursor(1)
-			   nCena := S_Price->Cena
-			   nNdc  := S_Price->Ndc
-			   nFec  := S_Price->Fec
-			   @ nRow,09 get nCena pict "9999999999.999999" ////valid nCena > 0
-			   @ nRow,26 get nNdc  pict "99.999"   /// valid nNdc >= 0
-			   @ nRow,33 get nFec  pict "99.999"      valid nFec >= 0
-			   read
-			   if LastKey() == K_ESC ; break ; End
-			   S_Price->Cena := nCena
-			   S_Price->Ndc  := nNdc
-			   S_Price->Fec  := nFec
-           END SEQUENCE
-           SetCursor(0)
-           RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)
-           FreshOrder(tb)
-       other
-           ApplyKey(nkey,tb)
-    end
-   end
-End
-tb := nil
-S_wCloseSl(S_RanDom()%22+1)
-SetColor(ColorOld)
-SetCursor(SursorOld)
-Set Relation to
-if nDelete > 0  ;  pack  ; End
-Select(SelectOld)
+	ColorOld := SetColor(COLOR_NSI)
+	SursorOld := SetCursor(0)
+	DbSelectArea("S_Price")
+	Set Relation to str(Chet,4,0) into S_CHET,;
+				 to str(Tip,1) into S_GR
+	S_Open_M(03,32,22,68,,sset[2])
+	@ 01,01 say "Счет Тип       Цена    %Ндс Вк.НДС?"
+    //           9999  9  999999999.99  999      L
+	@ 02,01 say Repl([─],MaxCol()-1)
+	@ MaxRow()-2,01 say Repl([─],MaxCol()-1)
+	@ MaxRow()-5,01 say Repl([─],MaxCol()-1)
+	@ MaxRow()-4,01 say "Счет"
+	@ MaxRow()-3,01 say "Тип орг."
+	@ MaxRow()-1,01 say padc("2печ 3уд 4рег 5корр ",MaxCol()-1) color sset[5]
+	tb := TBrowseDb(03,01,MaxRow()-6,MaxCol()-1)
+	tb:AddColumn(TbColumnNew("" , ;
+	  {|| str(S_Price->Chet,4,0)+"  "+str(S_Price->Tip,1)+"  "+str(S_Price->Cena,12,2)+"  "+;
+	    str(S_Price->PcNds,3,0)+"      "+ IIF(S_Price->NdsInc, "T", "F" )}))
+	  // 
+	S_Price->(DbGoTop())
+	While ( .t. )
+	   nKey := 0
+	   While ( !tb:Stabilize() )
+		 if ( nKey := m_inkey() ) != 0 ; exit ; end
+	   end
+	   nRow := Row()
+	   @ MaxRow()-4,06 say S_Chet->Naim
+	   @ MaxRow()-3,11 say S_Gr->Naim
+	   if nKey == 0 ; nKey := m_inkey(0)  ; end
+	   if nKey == K_ESC ; exit ; end
+	   if tb:Stable
+		do case
+		   Case nKey == K_F2  // Печать
+				nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
+				@ MaxRow()-1,01 say padc("Следите за печатью и бумагой",MaxCol()-1) color sset[5]
+				nRow := S_Price->(Recno())
+				S_Price->(DbGoTop())
+				Set Device to Print
+				@ prow()+1,01 say padc("Распечатка",35)
+				@ prow()+1,01 say padc("Ценник",35)
+				@ prow()+1,01 say repl("-",35)
+				@ prow()+1,01 say "Счет Тип       Цена   % Ндс Вкл.НДС?"
+	//                             9999  9  999999999.99  999%   CCC
+				@ prow()+1,01 say repl("-",25)
+				While ( !S_Price->(eof()) )
+				  @ prow()+1,01 say  str(S_Price->Chet,4,0)+"  "+str(S_Price->Tip,1)+"  "+;
+									 str(S_Price->Cena,12,2)+" "+str(S_Price->PcNds,3,0)+"%   "+; 
+									 IIF(S_Price->NdsInc, "Да", "Нет" )
+				  S_Price->(DbSkip(1))
+				End
+				@ prow()+1,01 say repl("=",35)
+				@ prow()+1,01 say ""
+				Set Device to Screen
+				RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)
+				S_Gr->(DbGoto(nRow))
+		   case nKey == K_F3  // Удаление
+			   if S_Price->(Recno()) # 0 .and. S_Err({S_wRow()+1,S_wCol()+2,,;
+				 "Вы действительно","желаете удалить запись",;
+				 "и не пожалеете об этом?","% Да ; Нет ;"}) == 1 
+					 S_Price->(DbDelete())   ; nDelete++
+					 S_Price->(DbSkip(1))
+					 if S_Price->(eof()) ; S_Price->(DbGoBottom()) ; end
+			   end
+			   FreshOrder(tb)
+		   case nKey == K_F4  // Регистрация
+			   tb:DeHilite()
+			   nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
+			   @ MaxRow()-1,01 say padc("Регистрируйте запись",MaxCol()-1) color sset[5]
+			   BEGIN SEQUENCE
+				   @ 03,01 say padc(" ",MaxCol()-1)
+				   nChet := nTip := 0
+				   SetCursor(1)
+				   @ 03,02 get nChet pict "9999"  Valid VedChet(@nChet,MaxRow()-4,06)
+				   @ 03,08 get nTip pict "9"  valid VedGr(@nTip,MaxRow()-3,11)
+				   read
+				   if LastKey() == K_ESC ; break ; End
+				   if S_Price->(DbSeek(str(nChet,4,0)+str(nTip,1)))
+					 S_Beep()
+					 @ 03,09 say " Уже имеется"
+					 M_Inkey(3)
+					 break
+				   End
+				   nCena := nPcNds := 0
+				   lNdsInc := .T.
+				   @ 03,10 get nCena pict "9999999999.99" valid nCena > 0
+				   @ 03,25 get nPcNds  pict "999" valid nPcNds >= 0
+				   @ 03,34 get lNdsInc  pict "L" valid lNdsInc == .T. .or. lNdsInc == .F.
+				   read
+				   if LastKey() == K_ESC ; break ; End
+				   S_Price->(DbAppend())
+				   S_Price->Tip  := nTip
+				   S_Price->Chet := nChet
+				   S_Price->Cena := nCena
+				   S_Price->PcNds := nPcNds
+				   S_Price->NdsInc := lNdsInc
+			   END SEQUENCE
+			   SetCursor(0)
+			   RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)
+			   FreshOrder(tb)
+		   case nKey == K_F5  // Корретировка
+			   tb:DeHilite()
+			   nKey := SaveScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1)
+			   @ MaxRow()-1,01 say padc("Корректируйте данные",MaxCol()-1) color sset[5]
+			   BEGIN SEQUENCE
+				   SetCursor(1)
+				   nCena := S_Price->Cena
+				   nPcNds  := S_Price->PcNds
+				   lNdsInc  := S_Price->NdsInc
+				   @ 03,10 get nCena pict "9999999999.99" valid nCena > 0
+				   @ 03,25 get nPcNds  pict "999" valid nPcNds >= 0
+				   @ 03,34 get lNdsInc  pict "L" valid lNdsInc == .T. .or. lNdsInc == .F.
+				   read
+				   if LastKey() == K_ESC ; break ; End
+				   S_Price->Cena := nCena
+				   S_Price->PcNds := nPcNds
+				   S_Price->NdsInc := lNdsInc
+			   END SEQUENCE
+			   SetCursor(0)
+			   RestScreen(MaxRow()-1,01,MaxRow()-1,MaxCol()-1,nKey)
+			   FreshOrder(tb)
+		   other
+			   ApplyKey(nkey,tb)
+		end
+	   end
+	End
+	tb := nil
+	S_wCloseSl(S_RanDom()%22+1)
+	SetColor(ColorOld)
+	SetCursor(SursorOld)
+	Set Relation to
+	if nDelete > 0  ;  pack  ; End
+	Select(SelectOld)
 Return ( .f. )
 /////////////////////////////////////////////////////////////////////////////
 Function VedGr(nKod,Row,Col)
