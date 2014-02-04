@@ -9,7 +9,7 @@ Local nDelete := 0, nChet, nTip, nCena, nNdc, nFec
 ColorOld := SetColor(COLOR_NSI)
 SursorOld := SetCursor(0)
 DbSelectArea("S_Price")
-Set Relation to str(Chet,5,2) into S_CHET,;
+Set Relation to str(Chet,4,0) into S_CHET,;
              to str(Tip,1) into S_GR
 S_Open_M(03,32,22,68,,sset[2])
 @ 01,01 say "ëÁ•‚ í®Ø       ñ•≠†   % ç§· % îùë"
