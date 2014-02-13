@@ -115,9 +115,9 @@ Function VedPrice()
 				   nCena := S_Price->Cena
 				   nPcNds  := S_Price->PcNds
 				   lNdsInc  := S_Price->NdsInc
-				   @ 03,10 get nCena pict "9999999999.99" valid nCena > 0
-				   @ 03,25 get nPcNds  pict "999" valid nPcNds >= 0
-				   @ 03,34 get lNdsInc  pict "L" valid lNdsInc == .T. .or. lNdsInc == .F.
+				   @ nRow,10 get nCena pict "9999999999.99" // valid nCena > 0
+				   @ nRow,25 get nPcNds  pict "999" // valid nPcNds >= 0
+				   @ nRow,34 get lNdsInc  pict "L" valid lNdsInc == .T. .or. lNdsInc == .F.
 				   read
 				   if LastKey() == K_ESC ; break ; End
 				   S_Price->Cena := nCena
@@ -894,12 +894,12 @@ Function VedPrixod()  // Ввод Прихода
 	@ MaxRow()-2,01 say Repl([─],MaxCol()-1)
 	@ MaxRow()-4,01 say Repl([─],MaxCol()-1)
 	@ MaxRow(),01 say padc("2печ 3уд 4рег 5корр 6поиск 7поиск ",MaxCol()-1) color sset[5]
-	@ MaxRow()-3,01 say "Cчет ..... .............................. Док-т ....."
-	@ MaxRow()-2,01 say "Количество .......... Цена ....... ..cум ............."
-	@ MaxRow()-1,01 say "Ндс ............. ПРс ............. Банк ............."
+	@ MaxRow()-3,01 say "Cчет .... ..............................   Док-т ....."
+	@ MaxRow()-2,01 say "Кол-во .......... Цена ............ %НДС ... Вк.НДС? ."
+	@ MaxRow()-1,01 say "Сумма ............. НДС ............. Банк ..........."
 	tb := TBrowseDb(03,01,MaxRow()-5,MaxCol()-1)
 	tb:AddColumn(TbColumnNew("" ,{|| str(Prixod->Ent,4)+" "+S_Ent->Naim+" "+;
-								  str(Prixod->Summa,13,2) } ))
+								  str(GET_SUM(Prixod->Summa, Prixod->SumNds, Prixod->NdsInc),13,2) } ))
 	Prixod->(DbGoTop())
 	While ( .t. )
 	   nKey := 0
@@ -908,14 +908,15 @@ Function VedPrixod()  // Ввод Прихода
 	   end
 	   nRow := Row()
 	   @ MaxRow()-3,06 say Prixod->Chet pict "9999"
-	   @ MaxRow()-3,12 say S_Chet->Naim
-	   @ MaxRow()-3,49 say Prixod->Npp pict "99999"
-	   @ MaxRow()-2,12 say Prixod->Kolvo pict "9999999999"
-	   @ MaxRow()-2,28 say Prixod->Cena  pict "999.999999"
-	   @ MaxRow()-2,42 say Prixod->Sum   pict "9999999999.99"
-	   @ MaxRow()-1,05 say Prixod->Ndc   pict "9999999999.99"
-	   @ MaxRow()-1,23 say Prixod->Fec   pict "9999999999.99"
-	   @ MaxRow()-1,42 say Prixod->SumBank pict "9999999999.99"
+	   @ MaxRow()-3,11 say S_Chet->Naim
+	   @ MaxRow()-3,50 say Prixod->Npp pict "99999"
+	   @ MaxRow()-2,8  say Prixod->Kolvo pict "9999999999"
+	   @ MaxRow()-2,24 say Prixod->Cena  pict "999999999.99"
+	   @ MaxRow()-2,42 say Prixod->PcNds  pict "999"
+	   @ MaxRow()-2,54 say Prixod->NdsInc pict "L"
+	   @ MaxRow()-1,07 say GET_SUM_WO_NDS(Prixod->Summa, Prixod->SumNds, Prixod->NdsInc) pict "9999999999.99"
+	   @ MaxRow()-1,25 say Prixod->SumNds pict "9999999999.99"
+	   @ MaxRow()-1,44 say Prixod->SumBank pict "99999999.99"
 	   if nKey == 0 ; nKey := m_inkey(0)  ; end
 	   if nKey == K_ESC ; exit ; end
 	   if tb:Stable
@@ -933,7 +934,7 @@ Function VedPrixod()  // Ввод Прихода
 				@ prow()+1,01 say repl("-",57)
 				While ( !Prixod->(eof()) )
 				  @ prow()+1,01 say str(Prixod->Ent,4)+" "+S_Ent->Naim+" "+;
-									str(Prixod->Chet,4,0)+" "+str(Prixod->Summa,13,2)
+									str(Prixod->Chet,4,0)+" "+str(GET_SUM(Prixod->Summa, Prixod->SumNds, Prixod->NdsInc),13,2)
 				  Prixod->(DbSkip(1))
 				End
 				@ prow()+1,01 say repl("=",55)
@@ -1004,49 +1005,50 @@ Function VedPrixod()  // Ввод Прихода
 				 S_Ent->(Dbseek(str(nEnt,4)))
 				 nSumma := nChet := nSum := nNpp := nKolvo := 0
 			     // Запрашиваем счет
-				 @ MaxRow()-3,06 get nChet pict "9999" Valid VedChet(@nChet,MaxRow()-3,12)
+				 @ MaxRow()-3,06 get nChet pict "9999" Valid VedChet(@nChet,MaxRow()-3,11)
 				 read
 				 if LastKey() == K_ESC ; Loop ; End
 				 // Подтягиваем цену
 				 S_Price->(DbSeek(str(nChet,4,0)+str(S_Ent->Tip,1)))
-				 pNdc := S_Price->Ndc
-				 pFec := S_Price->Fec
+				 nPcNds := S_Price->PcNds
+				 lNdsInc := S_Price->NdsInc
 				 nCena:= S_Price->Cena
 				 nBank:= 0
 				 // Выводим/корркктируем цену, запрашиваем документ и количество
-				 @ MaxRow()-3,49 get nNpp pict "99999" 
-				 @ MaxRow()-2,12 get nKolvo pict "9999999999" 
-				 @ MaxRow()-2,28 get nCena  pict "999.999999" 
+				 @ MaxRow()-3,50 get nNpp pict "99999" 
+				 @ MaxRow()-2,8 get nKolvo pict "9999999999" 
+				 @ MaxRow()-2,24 get nCena  pict "999999999.99" 
+				 @ MaxRow()-2,42 get nPcNds pict "999"
+	             @ MaxRow()-2,54 say lNdsInc pict "L"
 				 read
 				 if LastKey() == K_ESC ; Loop ; End
 				 nSum := NEW_ROUND(nKolvo*nCena,2)
-				 @ MaxRow()-2,42 get nSum   pict "9999999999.99"
+				 @ MaxRow()-1,07 get nSum   pict "9999999999.99"
 				 read
 				 if LastKey() == K_ESC ; Loop ; End
-				 nNdc := NEW_ROUND(pNdc*nSum,2)
-				 nFec := NEW_ROUND(pFec*nSum,2)
-				 @ MaxRow()-1,05 get nNdc   pict "9999999999.99"
-				 @ MaxRow()-1,23 get nFec   pict "9999999999.99"
+				 nSumNds := GET_NDS(nSum, nPcNds, lNdsInc)
+				 @ MaxRow()-1,25 get nSumNds   pict "9999999999.99"
 				 read
 				 if LastKey() == K_ESC ; Loop ; End
-				 nSumma := nSum + nNdc + nFec
+				 nSumma := GET_SUM(nSum, nSumNds, lNdsInc) 
 				 @ 03,42 get nSumma pict "9999999999.99"
 				 read
 				 if LastKey() == K_ESC ; Loop ; End
-				 @ MaxRow()-1,42 get nBank pict "9.999" range 0,1
-				 read
-				 if LastKey() == K_ESC ; Loop ; End
+//				 @ MaxRow()-1,24 get nBank pict "9999999999.99" range 0,1
+//				 @ MaxRow()-1,42 get nBank pict "9.999" range 0,1
+//				 read
+//				 if LastKey() == K_ESC ; Loop ; End
 				 Prixod->(DbAppend())
-				 Prixod->Chet  := nChet
-				 Prixod->Ent   := nEnt
-				 Prixod->Sum   := nSum
-				 Prixod->Kolvo := nKolvo
-				 Prixod->Cena  := nCena
-				 Prixod->Ndc   := nNdc
-				 Prixod->Fec   := nFec
-				 Prixod->Npp   := nNpp
-				 Prixod->SumBank := NEW_ROUND(nSumma*nBank,2)
-				 Prixod->Summa   := nSumma + Prixod->SumBank
+				 Prixod->Ent     := nEnt
+				 Prixod->Chet    := nChet
+				 Prixod->Kolvo   := nKolvo
+				 Prixod->Cena    := nCena
+				 Prixod->PcNds   := nPcNds
+				 Prixod->NdsInc  := lNdsInc
+				 Prixod->Npp     := nNpp
+				 Prixod->SumNds  := nSumNds
+				 Prixod->SumBank := 0
+				 Prixod->Summa   := nSumma
 			   End
 			   SetCursor(0)
 			   RestScreen(MaxRow(),01,MaxRow(),MaxCol()-1,nKey)            
@@ -1056,49 +1058,57 @@ Function VedPrixod()  // Ввод Прихода
 			   nKey := SaveScreen(MaxRow(),01,MaxRow(),MaxCol()-1)
 			   SetCursor(1)
 			   @ MaxRow(),01 say padc("Корректируйте данные",MaxCol()-1) color sset[5]
-		   pNdc:=0.2
-			   nSumma := Prixod->Summa
-			   nSum   := Prixod->Sum
-			   nKolvo := Prixod->Kolvo 
-			   nCena  := Prixod->Cena
-			   nNdc   := Prixod->Ndc 
-			   nFec   := Prixod->Fec
-			   nNpp   := Prixod->Npp
-			   nChet  := Prixod->Chet 
-			   nBank  := NEW_ROUND(Prixod->SumBank/Prixod->Summa,3)
+			   nSumma  := Prixod->Summa
+			   nSumNds := Prixod->SumNds
+			   nKolvo  := Prixod->Kolvo 
+			   nCena   := Prixod->Cena
+			   nPcNds  := Prixod->PcNds 
+			   lNdsInc := Prixod->NdsInc
+			   nNpp    := Prixod->Npp
+			   nChet   := Prixod->Chet 
+			   nBank   := Prixod->SumBank
 			   S_Ent->(Dbseek(str(Prixod->Ent,4)))
 			   BEGIN SEQUENCE
-			   @ MaxRow()-3,06 get nChet pict "9999" Valid VedChet(@nChet,MaxRow()-3,12)
-			   @ MaxRow()-3,49 get nNpp pict "99999" 
-			   @ MaxRow()-2,12 get nKolvo pict "9999999999" 
-			   @ MaxRow()-2,28 get nCena  pict "999.999999" 
-			   read
-			   if LastKey() == K_ESC ; break ; End
-			   nSum := NEW_ROUND(nKolvo*nCena,2)
-			   @ MaxRow()-2,42 get nSum   pict "9999999999.99"
-			   read
-			   if LastKey() == K_ESC ; break ; End
-				nNdc := NEW_ROUND(pNdc*nSum,2)
-			   @ MaxRow()-1,05 get nNdc   pict "9999999999.99"
-			   @ MaxRow()-1,23 get nFec   pict "9999999999.99"
-			   read
-			   if LastKey() == K_ESC ; Break ; End
-			   nSumma := nSum + nNdc + nFec
-			   @ nRow,42 get nSumma pict "9999999999.99"
-			   read
-			   if LastKey() == K_ESC ; Break ; End
-			   @ MaxRow()-1,42 get nBank pict "9.999" range 0,1
-			   read
-			   if LastKey() == K_ESC ; Break ; End
-			   Prixod->Chet  := nChet
-			   Prixod->Sum   := nSum
-			   Prixod->Kolvo := nKolvo
-			   Prixod->Cena  := nCena
-			   Prixod->Ndc   := nNdc
-			   Prixod->Fec   := nFec
-			   Prixod->Npp   := nNpp
-			   Prixod->SumBank := NEW_ROUND(nSumma*nBank,2)           
-			   Prixod->Summa   := nSumma + Prixod->SumBank
+				   @ MaxRow()-3,06 get nChet pict "9999" Valid VedChet(@nChet,MaxRow()-3,11)
+				   read
+				   if LastKey() == K_ESC ; break ; End
+				   // Подтягиваем цену
+				   S_Price->(DbSeek(str(nChet,4,0)+str(S_Ent->Tip,1)))
+				   nPcNds := S_Price->PcNds
+				   lNdsInc := S_Price->NdsInc
+				   nCena:= S_Price->Cena
+				   nBank:= 0
+				   @ MaxRow()-3,50 get nNpp pict "99999" 
+				   @ MaxRow()-2,8 get nKolvo pict "9999999999" 
+				   @ MaxRow()-2,24 get nCena  pict "999999999.99" 
+				   @ MaxRow()-2,42 get nPcNds pict "999"
+				   @ MaxRow()-2,54 say lNdsInc pict "L"
+				   read
+				   if LastKey() == K_ESC ; break ; End
+				   nSum := NEW_ROUND(nKolvo*nCena,2)
+				   @ MaxRow()-1,07 get nSum   pict "9999999999.99"
+				   read
+				   if LastKey() == K_ESC ; break ; End
+				   nSumNds := GET_NDS(nSum, nPcNds, lNdsInc)
+				   @ MaxRow()-1,25 get nSumNds   pict "9999999999.99"
+				   read
+				   if LastKey() == K_ESC ; Break ; End
+				   nSumma := GET_SUM(nSum, nSumNds, lNdsInc) 
+				   @ nRow,42 get nSumma pict "9999999999.99"
+				   read
+	//			   if LastKey() == K_ESC ; Break ; End
+	//			   @ MaxRow()-1,42 get nBank pict "9.999" range 0,1
+	//			   read
+	//			   if LastKey() == K_ESC ; Break ; End
+				   Prixod->Chet    := nChet
+				   Prixod->Kolvo   := nKolvo
+				   Prixod->Cena    := nCena
+				   Prixod->PcNds   := nPcNds
+				   Prixod->NdsInc  := lNdsInc
+				   Prixod->Npp     := nNpp
+				   Prixod->SumNds  := nSumNds
+				   Prixod->SumBank := 0
+				   Prixod->Summa   := nSumma
 			   END SEQUENCE
 			   SetCursor(0)
 			   RestScreen(MaxRow(),01,MaxRow(),MaxCol()-1,nKey)            
