@@ -2412,10 +2412,10 @@ While .t.
       ////   @ Prow()+1,00 say " "
 ****         @ Prow()+1,00 say padc(" А К Т   No "+alltrim(str(nChFakt,6)),nLen)
          @ Prow()+1,00 say "                         А К Т    "   
- ******        @ Prow()+1,00 say " ПРИЙМАННЯ ВИКОНАНИХ РОБIT за " +Left(right(Fakt->Naim,22),10) + "2013.р "
+ ******        @ Prow()+1,00 say " ПРИЙМАННЯ ВИКОНАНИХ РОБIT за " +Left(right(Fakt->Naim,22),10) + "2014.р "
       @ Prow()+1,00 say padc("  ВИКОНАНИХ РОБIT ДО РАХУНКУ N "+alltrim(str(nChFakt,6)),nLen)
       
-    @ Prow()+1,00 say " м.Первомайський                              " +Left(right(Fakt->Naim,22),10) + "2013.р "
+    @ Prow()+1,00 say " м.Первомайський                              " +Left(right(Fakt->Naim,22),10) + "2014.р "
 //      @ Prow()+1,00 say padc("от "+dtoc(dDataCh),nLen)
          @ Prow()+1,00 say "Ми,що нижче пiдписалися:представник виконавця в особi начальника "
          @ Prow()+1,00 say "Первомайського комунального виробничого управлiння водопрoвiдно  "
@@ -2545,10 +2545,10 @@ While .t.
       ////   @ Prow()+1,00 say " "
 ****         @ Prow()+1,00 say padc(" А К Т   No "+alltrim(str(nChFakt,6)),nLen)
          @ Prow()+1,00 say "                         А К Т    "   
- ******        @ Prow()+1,00 say " ПРИЙМАННЯ ВИКОНАНИХ РОБIT за " +Left(right(Fakt->Naim,22),10) + "2013.р "
+ ******        @ Prow()+1,00 say " ПРИЙМАННЯ ВИКОНАНИХ РОБIT за " +Left(right(Fakt->Naim,22),10) + "2014.р "
       @ Prow()+1,00 say padc("  ВИКОНАНИХ РОБIT ДО РАХУНКУ N "+alltrim(str(nChFakt,6)),nLen)
       
-    @ Prow()+1,00 say " м.Первомайський                              " +Left(right(Fakt->Naim,22),10) + "2013.р "
+    @ Prow()+1,00 say " м.Первомайський                              " +Left(right(Fakt->Naim,22),10) + "2014.р "
 //      @ Prow()+1,00 say padc("от "+dtoc(dDataCh),nLen)
          @ Prow()+1,00 say "Ми,що нижче пiдписалися:представник виконавця в особi начальника "
          @ Prow()+1,00 say "Первомайського комунального виробничого управлiння водопрoвiдно  "
@@ -2677,7 +2677,7 @@ While .t.
          @ Prow()+1,00 say "                         А К Т    "   
       @ Prow()+1,00 say padc("  ВИКОНАНИХ РОБIT ДО РАХУНКУ N "+alltrim(str(nChFakt,6)),nLen)
       
-    @ Prow()+1,00 say " м.Первомайський                           "    +str(day(ddatach),2)+" " +Left(right(Fakt->Naim,22),10) + "2013.р "
+    @ Prow()+1,00 say " м.Первомайський                           "    +str(day(ddatach),2)+" " +Left(right(Fakt->Naim,22),10) + "2014.р "
 //      @ Prow()+1,00 say padc("от "+dtoc(dDataCh),nLen)
          @ Prow()+1,00 say "Ми,що нижче пiдписалися:представник виконавця в особi начальника "
          @ Prow()+1,00 say "Первомайського комунального виробничого управлiння водопровiдно  "
@@ -2802,8 +2802,8 @@ While .t.
       ////   @ Prow()+1,00 say " "
          @ Prow()+1,00 say "                         А К Т    "   
       @ Prow()+1,00 say padc("  ВИКОНАНИХ РОБIT ДО РАХУНКУ N "+alltrim(str(nChFakt,6)),nLen)
-    @ Prow()+1,00 say " м.Первомайський                              " +Left(right(Fakt->Naim,22),10) + "2013.р "      
-////    @ Prow()+1,00 say " м.Первомайський                           "    +str(day(ddatach),2)+" " +Left(right(Fakt->Naim,22),10) + "2013.р "
+    @ Prow()+1,00 say " м.Первомайський                              " +Left(right(Fakt->Naim,22),10) + "2014.р "      
+////    @ Prow()+1,00 say " м.Первомайський                           "    +str(day(ddatach),2)+" " +Left(right(Fakt->Naim,22),10) + "2014.р "
 //      @ Prow()+1,00 say padc("от "+dtoc(dDataCh),nLen)
          @ Prow()+1,00 say "Ми,що нижче пiдписалися:представник виконавця в особi начальника "
          @ Prow()+1,00 say "Первомайського комунального виробничого управлiння водопровiдно  "
