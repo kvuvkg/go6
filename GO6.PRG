@@ -436,6 +436,7 @@ Static function OpenBaza()
            DbCreate(cDir+"PLPOR",{ {"PlPor",  "N",06,00},;   // Номер
                                    {"GodPor", "N",04,00},;   // Год
                                    {"DataPor","D",08,00},;   // Дата
+                                   {"BankPor","N",03,00},;   // ID банка
                                    {"EntPor", "N",04,00},;   // Код организации
                                    {"SumPor", "N",15,02},;   // Сумма
                                    {"Text1",  "C",45,00},;   // Текст
@@ -481,6 +482,7 @@ Static function OpenBaza()
            DbCreate(cDir+"Fakt",{ {"NomChF", "N",06,00},;   // номер
                                   {"Data",   "D",08,00},;   // Дата накладной
                                   {"DataCh", "D",08,00},;   // Дата СФ
+                                  {"Bank",   "N",03,00},;   // ID банка
                                   {"Ent",    "N",04,00},;   // организация
                                   {"EdIzm",  "C",07,00},;   // ед изм
                                   {"Kolvo",  "N",10,00},;   // кол-во
@@ -490,7 +492,7 @@ Static function OpenBaza()
                                   {"Ndc",    "N",15,02},;   // Ндс
                                   {"Chet",   "N",04,00},;   // счет
                                   {"Fec",    "N",13,02},;   // ФЕС
-                                  {"SumBank","N",13,02},; // Сумма по банку
+                                  {"SumBank","N",13,02},;   // Сумма по банку
                                   {"Sposob", "C",25,00} })  // способ
         end
         use (cDir+"Fakt") new
