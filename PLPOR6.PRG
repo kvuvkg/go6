@@ -1,773 +1,170 @@
 #include "Inkey.ch"
 ///////////////////////////////////////////////////////////////////////////
 Function PlPor() // формирование и печать платежных поручений
-Local dData := year(sset[100]), nPlPor, i, nKolEkz, nSumma, nNdc,;
-      ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
-      GetList := {},cText1, cText2, dDataPor, aProp, nEnt, nLen
-Local NaimMec := NaimMes2()
-Local   pr:=0
+    LOCAL nYear := year(sset[100])
+    LOCAL nPlPor, i, nKolEkz, nSumma, nNdc
+    LOCAL ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32])
+    LOCAL GetList := {}
+    LOCAL cText1, cText2, dDataPor, aProp, nBank, nEnt, nLen
+    LOCAL NaimMec := NaimMes2()
+    LOCAL pr:=0
+    
+    S_Open_M(07,03,21,59,sset[32],sset[2])
+    While .t.
+        Scroll(01,01,MaxRow()-1,MaxCol()-1)
+        @ MaxRow()-2,01 say repl("─",MaxCol()-1)
+        @ MaxRow()-1,01 say padc(" Минутку....",MaxCol()-1) color sset[15]
+        if PlPor->(DbSeek(str(nYear,4)))
+            While !PlPor->(eof()) .and. PlPor->GodPor == nYear
+                nPlPor := PlPor->PlPor
+                PlPor->(DbSkip(1))
+            End
+            nPlPor++
+        else
+            nPlPor := 0
+        End
+        @ MaxRow()-1,01 say padc(" ESC - конец работы",MaxCol()-1) color sset[15]
+        @ 01,02 say "No платежного поручения" get nPlPor pict "999999" valid nPlPor > 0
+        read
+        if LastKey() == K_ESC ; exit ; End
+        if PlPor->(DbSeek(str(nYear,4)+str(nPlPor,6)))
+            lAppend := .f.
+            @ MaxRow()-2,01 say padc(" КОРРЕКТИРУЕМ ПОРУЧЕНИЕ",MaxCol()-1) color sset[15]
+        else
+            @ MaxRow()-2,01 say padc(" РЕГИСТРИРУЕМ ПОРУЧЕНИЕ",MaxCol()-1) color sset[15]
+            lAppend := .t.
+            PlPor->(DbGoBottom())
+            PlPor->(DbSkip(1))
+        End
+        dDataPor  := PlPor->DataPor
+        nBank     := PlPor->BankPor
+        nEnt      := PlPor->EntPor
+        nSumma    := PlPor->SumPor
+        nNdc      := PlPor->Ndc
+        cText1    := PlPor->Text1
+        cText2    := PlPor->Text2
+        cText3    := space(45)
+        S_BANK->(DbSeek(str(nBank,3)))
+        S_Ent->(DbSeek(str(nEnt,4)))
+        @ 01,35 get pr pict "9"
+        @ 01,33 say "от "+dtoc(dDataPor)+" г."
+        @ 02,02 say "В банк "+str(nBank,3)+"  "+S_BANK->Naim
+        @ 03,14 say " МФО: "+S_BANK->Mfo+" счет: "+S_BANK->Schet
+        @ 04,02 say "Организация "+str(nEnt,4)+" "+S_Ent->Naim
+        @ 05,14 say " МФО: "+S_Ent->Mfo+" счет: "+S_Ent->Schet
+        @ 06,14 say " ОКПО: "+S_Ent->Okpo
+        @ 07,14 say " Банк: "+S_Ent->Bank
+        @ 08,02 say "Сумма "+str(nSumma,15,2)+" грв."
+        @ 08,28 say "в т.ч. НДС "+str(nNdc,15,2)
+        @ 09,02 say "За что "+cText1
+        @ 10,02 say "       "+cText2
+        ///////////////////////////////////  G E T /////////////////////////
+        @ 01,36 get dDataPor pict "@d" valid !Empty(dDataPor)
+        @ 02, 09 get nBank pict "999" valid VedBank(@nBank,02,14)
+        read
+        if LastKey()==K_ESC ; Loop ; End
+        @ 02,14 say S_BANK->Naim
+        @ 03,14 say " МФО: "+S_BANK->Mfo+" счет: "+S_BANK->Schet
+        //
+        @ 04, 14 get nEnt pict "9999" valid VedEnt(@nEnt,04,19)
+        read
+        if LastKey()==K_ESC ; Loop ; End
+        @ 04,19 say S_Ent->Naim
+        @ 05,14 say " МФО: "+S_Ent->Mfo+" счет: "+S_Ent->Schet
+        @ 06,14 say " ОКПО: "+S_Ent->Okpo
+        @ 07,14 say " Банк: "+S_Ent->Bank
+        @ 08,08 get nSumma pict "999999999999.99" valid nSumma > 0
+        read
+        if LastKey()==K_ESC ; Loop ; End
+        nNdc := if(empty(nNdc),NEW_ROUND(nSumma*0.16667,2),nNdc)
+        @ 08,39 get nNdc   pict "999999999999.99" valid nNdc < nSumma .and. nNdc >= 0
+        @ 09,09 get cText1
+        @ 10,09 get cText2
+        @ 11,09 get cText3
+        read
+        if LastKey()==K_ESC ; Loop ; End
+        nKolEkz := 2
+        @ 11,01 say padc(" ",MaxCol()-1)
+        @ 11,07 say "Укажите количество экземпляров--->" get nKolEkz pict "99"
+        read
+        IF LastKey()<>K_ESC .and. nKolEkz > 0
+            @ 11,01 say padc("Следите за печатью и бумагой",MaxCol()-1) color sset[15]
+            BEGIN SEQUENCE
+                nLen  := 65
+                aProp := PropisSum(nSumma,58)
+                set(20,"PRINT")
+                set(24,"PlPor6.txt")
+                if pr#0
+                    @ prow()+1,00 say "В рахунок невiдкладных потреб "
+                endif
+                @ Prow()+1,00 say "┌────────────────────────────────────────────────────────────────────────────┐"
+                @ Prow()+1,00 say "│             ПЛАТIЖНЕ ДОРУЧЕННЯ N "+str(nPlPor,6)+ "               ┌─────────┐          │ "
+                @ Prow()+1,00 say "│                                   ──────              │ 0401001 │          │ "
+                @ Prow()+1,00 say "│            вiд <<"+str(day(ddataPor),2)+">>"+NaimMec[month(ddataPor)]+" "+str(year(ddataPor),4)+" р.               └─────────┘          │ "
+                @ Prow()+1,00 say "│                     ──   ───────     ─              Одержано банком        │  "
+                @ Prow()+1,00 say [│                                              << __>> _____________ 200_ р. │]
+                @ Prow()+1,00 say "│Платник  Первомайське  КПУВКХ                                               │ "
+                @ Prow()+1,00 say "│   ┌─────────┐                                                              │ "
+                @ Prow()+1,00 say "│Код│22714272 │                                                              │ "
+                @ Prow()+1,00 say "│   └─────────┘                                                              │  "
+                @ Prow()+1,00 say "│ Банк платника                Код банку     ДЕБЕТ рах. N       СУМА         │  "
+                @ Prow()+1,00 say "│                            ┌─────────┐ ┌──────────────┬──────────────────┐ │"
+                @ Prow()+1,00 say "│"+left(S_BANK->Naim,28)+"│"+S_BANK->Mfo+ "│ │"+S_BANK->Schet+"│"+strtran(str(nSumma,12,2),".",",")+ "      │ │"
+                @ Prow()+1,00 say "│ ───────────────────────────└─────────┘ └──────────────┤                  │ │"
+                @ Prow()+1,00 say "│ Одержувач " +S_Ent->Naim+ "         │                  │ │"
+                @ Prow()+1,00 say "│      ┌───────────┐                      КРЕДИТ рах. N │                  │ │"
+                @ Prow()+1,00 say "│ Код  │"+S_Ent->Okpo+ "│                     ┌──────────────┤                  │ │"
+                @ Prow()+1,00 say "│      └───────────┘           Код банку │"+S_Ent->Schet+"│                  │ │   "
+                @ Prow()+1,00 say "│Банк Одержувачa             ┌─────────┐ ┌──────────────┤                  │ │  "
+                @ Prow()+1,00 say "│"+left(S_Ent->Bank,28)+"│"+S_Ent->Mfo+ "│ │              │                  │ │ "
+                @ Prow()+1,00 say "│                            └─────────┘ └──────────────└─────────────────── │ "
+                @ Prow()+1,00 say "│Сума словами "+aProp[1]+ "     │"
+                for i := 2 to Len(aProp)
+                    @ Prow()+1,00 say "│             "+aProp[i]
+                Next
+                @ Prow()+1,00 say "│────────────────────────────────────────────────                            │ "
+                @ Prow()+1,00 say "│Призначення платежу "+cText1+ "           │"
+                @ Prow()+1,00 say "│                    "+cText2+ "           │"
+                @ Prow()+1,00 say "│                    "+cText3+ "           │"
+                @ Prow()+1,00 say "│                                                       ┌─────────┐          │"
+                @ Prow()+1,00 say "│                                                       └─────────┘          │"
 
-S_Open_M(07,03,19,59,sset[32],sset[2])
-While .t.
-  Scroll(01,01,MaxRow()-1,MaxCol()-1)
-  @ 10,01 say repl("─",MaxCol()-1)
-  @ 11,01 say padc(" Минутку....",MaxCol()-1) color sset[15]
-  if PlPor->(DbSeek(str(dData,4)))
-     While !PlPor->(eof()) .and. PlPor->GodPor == dData
-        nPlPor := PlPor->PlPor
-        PlPor->(DbSkip(1))
-     End
-     nPlPor++
-  else
-     nPlPor := 0
-  End
-  @ 11,01 say padc(" ESC - конец работы",MaxCol()-1) color sset[15]
-  @ 01,02 say "No платежного поручения" get nPlPor pict "999999" valid nPlPor > 0
-  read
-  if LastKey() == K_ESC ; exit ; End
-  if PlPor->(DbSeek(str(dData,4)+str(nPlPor,6)))
-     lAppend := .f.
-     @ 10,01 say padc(" КОРРЕКТИРУЕМ ПОРУЧЕНИЕ",MaxCol()-1) color sset[15]
-  else
-     @ 10,01 say padc(" РЕГИСТРИРУЕМ ПОРУЧЕНИЕ",MaxCol()-1) color sset[15]
-     lAppend := .t.
-     PlPor->(DbGoBottom())
-     PlPor->(DbSkip(1))
-  End
-  dDataPor  := PlPor->DataPor
-  nEnt      := PlPor->EntPor
-  nSumma    := PlPor->SumPor
-  nNdc      := PlPor->Ndc
-  cText1    := PlPor->Text1
-  cText2    := PlPor->Text2
-  cText3    := space(45)
-  S_Ent->(DbSeek(str(nEnt,4)))
-  @ 01,35 get pr pict "9"
-  @ 01,33 say "от "+dtoc(dDataPor)+" г."
-  @ 02,02 say "Организация "+str(nEnt,4)+" "+S_Ent->Naim
-  @ 03,14 say "МФО "+S_Ent->Mfo+" счет "+S_Ent->Schet
-  @ 04,14 say "ОКПО "+S_Ent->Okpo
-  @ 05,14 say "Банк "+S_Ent->Bank
-  @ 06,02 say "Сумма "+str(nSumma,15,2)+" грв."
-  @ 06,28 say "в т.ч. НДС "+str(nNdc,15,2)
-  @ 07,02 say "За что "+cText1
-  @ 08,02 say "       "+cText2
-  ///////////////////////////////////  G E T /////////////////////////
-  @ 01,36 get dDataPor pict "@d" valid !Empty(dDataPor)
-  @ 02,14 get nEnt pict "9999" valid VedEnt(@nEnt,02,19)
-  read
-  if LastKey()==K_ESC ; Loop ; End
-  @ 02,19 say S_Ent->Naim
-  @ 03,14 say "МФО "+S_Ent->Mfo+" счет "+S_Ent->Schet
-  @ 04,14 say "ОКПО "+S_Ent->Okpo
-  @ 05,14 say "Банк "+S_Ent->Bank
-  @ 06,08 get nSumma pict "999999999999.99" valid nSumma > 0
-  read
-  if LastKey()==K_ESC ; Loop ; End
-  nNdc := if(empty(nNdc),NEW_ROUND(nSumma*0.16667,2),nNdc)
-  @ 06,39 get nNdc   pict "999999999999.99" valid nNdc < nSumma .and. nNdc >= 0
-  @ 07,09 get cText1
-  @ 08,09 get cText2
-  @ 09,09 get cText3
-  read
-  if LastKey()==K_ESC ; Loop ; End
-  nKolEkz := 2
-  @ 11,01 say padc(" ",MaxCol()-1)
-  @ 11,07 say "Укажите количество экземпляров--->" get nKolEkz pict "99"
-  read
-  if LastKey()<>K_ESC .and. nKolEkz > 0
-     @ 11,01 say padc("Следите за печатью и бумагой",MaxCol()-1) color sset[15]
-     BEGIN SEQUENCE
-     nLen  := 65
-     aProp := PropisSum(nSumma,58)
-     set(20,"PRINT")
-     set(24,"PlPor6.txt")
-        if pr#0
-     @ prow()+1,00 say "В рахунок невiдкладных потреб "
-      endif
-     @ Prow()+1,00 say "┌────────────────────────────────────────────────────────────────────────────┐"
-     @ Prow()+1,00 say "│             ПЛАТIЖНЕ ДОРУЧЕННЯ N "+str(nPlPor,6)+ "               ┌─────────┐          │ "
-     @ Prow()+1,00 say "│                                   ──────              │ 0401001 │          │ "
-     @ Prow()+1,00 say "│            вiд <<"+str(day(ddataPor),2)+">>"+NaimMec[month(ddataPor)]+" "+str(year(ddataPor),4)+" р.               └─────────┘          │ "
-     @ Prow()+1,00 say "│                     ──   ───────     ─              Одержано банком        │  "
-     @ Prow()+1,00 say [│                                              << __>> _____________ 200_ р. │]
-     @ Prow()+1,00 say "│Платник  Первомайське  КПУВКХ                                               │ "
-     @ Prow()+1,00 say "│   ┌─────────┐                                                              │ "
-     @ Prow()+1,00 say "│Код│22714272 │                                                              │ "
-     @ Prow()+1,00 say "│   └─────────┘                                                              │  "
-     @ Prow()+1,00 say "│ Банк платника                Код банку     ДЕБЕТ рах. N       СУМА         │  "
-     @ Prow()+1,00 say "│                               ┌───────┐┌──────────────┬──────────────────┐ │"
-     @ Prow()+1,00 say "│Харкiвське ГРУ     ,ПриватБанк'│ 351533││26002348700001│"+strtran(str(nSumma,12,2),".",",")+ "      │ │"
-     @ Prow()+1,00 say "│ ──────────────────────────────└───────┘└──────────────┤                  │ │"
-     @ Prow()+1,00 say "│ Одержувач " +S_Ent->Naim+ "         │                  │ │"
-     @ Prow()+1,00 say "│      ┌───────────┐                      КРЕДИТ рах. N │                  │ │"
-     @ Prow()+1,00 say "│ Код  │"+S_Ent->Okpo+ "│                     ┌──────────────┤                  │ │"
-     @ Prow()+1,00 say "│      └───────────┘           Код банку │"+S_Ent->Schet+"│                  │ │   "
-     @ Prow()+1,00 say "│Банк Одержувачa             ┌─────────┐ ┌──────────────┤                  │ │  "
-     @ Prow()+1,00 say "│"+left(S_Ent->Bank,28)+"│"+S_Ent->Mfo+ "│ │              │                  │ │ "
-     @ Prow()+1,00 say "│                            └─────────┘ └──────────────└─────────────────── │ "
-     @ Prow()+1,00 say "│Сума словами "+aProp[1]+ "     │"
-     for i := 2 to Len(aProp)
-       @ Prow()+1,00 say "│             "+aProp[i]
-     Next
-     @ Prow()+1,00 say "│────────────────────────────────────────────────                            │ "
-     @ Prow()+1,00 say "│Призначення платежу "+cText1+ "           │"
-     @ Prow()+1,00 say "│                    "+cText2+ "           │"
-     @ Prow()+1,00 say "│                    "+cText3+ "           │"
-     @ Prow()+1,00 say "│                                                       ┌─────────┐          │"
-     @ Prow()+1,00 say "│                                                       └─────────┘          │"
+                if nNdc > 0
+                    @ Prow()+1,00 say "│ В тому числi ПДВ - "+str(nNdc,15,2)+ "                                         │"
+                End
+                @ Prow()+1,00 say "│ м.п.    пiдпис       ────────────           Проведено банком               │ "
+                @ Prow()+1,00 say [│                                       <<__>> _____________ 200_ p.         │ ]
+                @ Prow()+1,00 say "│                      ────────────            пiдпис банку                  │"
+                @ Prow()+1,00 say "└────────────────────────────────────────────────────────────────────────────┘"
+                @ Prow()+1,00 say "  "
 
-     if nNdc > 0
-        @ Prow()+1,00 say "│ В тому числi ПДВ - "+str(nNdc,15,2)+ "                                         │"
-     End
-     @ Prow()+1,00 say "│ м.п.    пiдпис       ────────────           Проведено банком               │ "
-     @ Prow()+1,00 say [│                                       <<__>> _____________ 200_ p.         │ ]
-     @ Prow()+1,00 say "│                      ────────────            пiдпис банку                  │"
-     @ Prow()+1,00 say "└────────────────────────────────────────────────────────────────────────────┘"
-     @ Prow()+1,00 say "  "
-
-     @ Prow()+1,00 say repl("= ",nLen/2)
-     @ prow()+1,00 say ""
-     set(24,"")
-     set(20,"SCREEN")
-     for i := 1 to nKolEkz
-        if S_TPRN("PlPor6.txt",,1) < 0 ; break ; End
-     Next
-     END SEQUENCE
-  End
-  if lAppend
-     PlPor->(DbAppend())
-     PlPor->GodPor:= dData
-     PlPor->PlPor := nPlPor
-  End
-  PlPor->DataPor := dDataPor
-  PlPor->EntPor  := nEnt
-  PlPor->SumPor  := nSumma
-  PlPor->Ndc     := nNdc
-  PlPor->Text1   := cText1
-  PlPor->Text2   := cText2
-End
-ferase("PlPor6.txt")
-S_wCloseSl(S_RanDom()%22+1)
-SetColor(ColorOld)
-return ( Nil )
-
-///////////////////////////////////////////////////////////////////////////
-Function PlPor1() // формирование и печать платежных поручений
-Local dData := year(sset[100]), nPlPor, i, nKolEkz, nSumma, nNdc,;
-      ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
-      GetList := {},cText1, cText2, dDataPor, aProp, nEnt, nLen
-Local NaimMec := NaimMes2()
-Local   pr:=0
-
-S_Open_M(07,03,19,59,sset[32],sset[2])
-While .t.
-  Scroll(01,01,MaxRow()-1,MaxCol()-1)
-  @ 10,01 say repl("─",MaxCol()-1)
-  @ 11,01 say padc(" Минутку....",MaxCol()-1) color sset[15]
-  if PlPor->(DbSeek(str(dData,4)))
-     While !PlPor->(eof()) .and. PlPor->GodPor == dData
-        nPlPor := PlPor->PlPor
-        PlPor->(DbSkip(1))
-     End
-     nPlPor++
-  else
-     nPlPor := 0
-  End
-  @ 11,01 say padc(" ESC - конец работы",MaxCol()-1) color sset[15]
-  @ 01,02 say "No платежного поручения" get nPlPor pict "999999" valid nPlPor > 0
-  read
-  if LastKey() == K_ESC ; exit ; End
-  if PlPor->(DbSeek(str(dData,4)+str(nPlPor,6)))
-     lAppend := .f.
-     @ 10,01 say padc(" КОРРЕКТИРУЕМ ПОРУЧЕНИЕ",MaxCol()-1) color sset[15]
-  else
-     @ 10,01 say padc(" РЕГИСТРИРУЕМ ПОРУЧЕНИЕ",MaxCol()-1) color sset[15]
-     lAppend := .t.
-     PlPor->(DbGoBottom())
-     PlPor->(DbSkip(1))
-  End
-  dDataPor  := PlPor->DataPor
-  nEnt      := PlPor->EntPor
-  nSumma    := PlPor->SumPor
-  nNdc      := PlPor->Ndc
-  cText1    := PlPor->Text1
-  cText2    := PlPor->Text2
-  cText3    := space(45)
-  S_Ent->(DbSeek(str(nEnt,4)))
-  @ 01,35 get pr pict "9"
-  @ 01,33 say "от "+dtoc(dDataPor)+" г."
-  @ 02,02 say "Организация "+str(nEnt,4)+" "+S_Ent->Naim
-  @ 03,14 say "МФО "+S_Ent->Mfo+" счет "+S_Ent->Schet
-  @ 04,14 say "ОКПО "+S_Ent->Okpo
-  @ 05,14 say "Банк "+S_Ent->Bank
-  @ 06,02 say "Сумма "+str(nSumma,15,2)+" грв."
-  @ 06,28 say "в т.ч. НДС "+str(nNdc,15,2)
-  @ 07,02 say "За что "+cText1
-  @ 08,02 say "       "+cText2
-  ///////////////////////////////////  G E T /////////////////////////
-  @ 01,36 get dDataPor pict "@d" valid !Empty(dDataPor)
-  @ 02,14 get nEnt pict "9999" valid VedEnt(@nEnt,02,19)
-  read
-  if LastKey()==K_ESC ; Loop ; End
-  @ 02,19 say S_Ent->Naim
-  @ 03,14 say "МФО "+S_Ent->Mfo+" счет "+S_Ent->Schet
-  @ 04,14 say "ОКПО "+S_Ent->Okpo
-  @ 05,14 say "Банк "+S_Ent->Bank
-  @ 06,08 get nSumma pict "999999999999.99" valid nSumma > 0
-  read
-  if LastKey()==K_ESC ; Loop ; End
-  nNdc := if(empty(nNdc),NEW_ROUND(nSumma*0.16667,2),nNdc)
-  @ 06,39 get nNdc   pict "999999999999.99" valid nNdc < nSumma .and. nNdc >= 0
-  @ 07,09 get cText1
-  @ 08,09 get cText2
-  @ 09,09 get cText3
-  read
-  if LastKey()==K_ESC ; Loop ; End
-  nKolEkz := 2
-  @ 11,01 say padc(" ",MaxCol()-1)
-  @ 11,07 say "Укажите количество экземпляров--->" get nKolEkz pict "99"
-  read
-  if LastKey()<>K_ESC .and. nKolEkz > 0
-     @ 11,01 say padc("Следите за печатью и бумагой",MaxCol()-1) color sset[15]
-     BEGIN SEQUENCE
-     nLen  := 65
-     aProp := PropisSum(nSumma,58)
-     set(20,"PRINT")
-     set(24,"PlPor6.txt")
-        if pr#0
-     @ prow()+1,00 say "В рахунок невiдкладных потреб "
-      endif
-     @ Prow()+1,00 say "┌────────────────────────────────────────────────────────────────────────────┐"
-     @ Prow()+1,00 say "│             ПЛАТIЖНЕ ДОРУЧЕННЯ N "+str(nPlPor,6)+ "               ┌─────────┐          │ "
-     @ Prow()+1,00 say "│                                   ──────              │ 0401001 │          │ "
-     @ Prow()+1,00 say "│            вiд <<"+str(day(ddataPor),2)+">>"+NaimMec[month(ddataPor)]+" "+str(year(ddataPor),4)+" р.               └─────────┘          │ "
-     @ Prow()+1,00 say "│                     ──   ───────     ─              Одержано банком        │  "
-     @ Prow()+1,00 say [│                                              << __>> _____________ 200_ р. │]
-     @ Prow()+1,00 say "│Платник  Первомайське  КПУВКХ                                               │ "
-     @ Prow()+1,00 say "│   ┌─────────┐                                                              │ "
-     @ Prow()+1,00 say "│Код│22714272 │                                                              │ "
-     @ Prow()+1,00 say "│   └─────────┘                                                              │  "
-     @ Prow()+1,00 say "│ Банк платника                Код банку     ДЕБЕТ рах. N       СУМА         │  "
-     @ Prow()+1,00 say "│                               ┌───────┐┌──────────────┬──────────────────┐ │"
-     @ Prow()+1,00 say "│Харкiвське ГРУ     ,ПриватБанк'│ 351533││26008348700005│"+strtran(str(nSumma,12,2),".",",")+ "      │ │"
-     @ Prow()+1,00 say "│ ──────────────────────────────└───────┘└──────────────┤                  │ │"
-     @ Prow()+1,00 say "│ Одержувач " +S_Ent->Naim+ "         │                  │ │"
-     @ Prow()+1,00 say "│      ┌───────────┐                      КРЕДИТ рах. N │                  │ │"
-     @ Prow()+1,00 say "│ Код  │"+S_Ent->Okpo+ "│                     ┌──────────────┤                  │ │"
-     @ Prow()+1,00 say "│      └───────────┘           Код банку │"+S_Ent->Schet+"│                  │ │   "
-     @ Prow()+1,00 say "│Банк Одержувачa             ┌─────────┐ ┌──────────────┤                  │ │  "
-     @ Prow()+1,00 say "│"+left(S_Ent->Bank,28)+"│"+S_Ent->Mfo+ "│ │              │                  │ │ "
-     @ Prow()+1,00 say "│                            └─────────┘ └──────────────└─────────────────── │ "
-     @ Prow()+1,00 say "│Сума словами "+aProp[1]+ "     │"
-     for i := 2 to Len(aProp)
-       @ Prow()+1,00 say "│             "+aProp[i]
-     Next
-     @ Prow()+1,00 say "│────────────────────────────────────────────────                            │ "
-     @ Prow()+1,00 say "│Призначення платежу "+cText1+ "           │"
-     @ Prow()+1,00 say "│                    "+cText2+ "           │"
-     @ Prow()+1,00 say "│                    "+cText3+ "           │"
-     @ Prow()+1,00 say "│                                                       ┌─────────┐          │"
-     @ Prow()+1,00 say "│                                                       └─────────┘          │"
-
-     if nNdc > 0
-        @ Prow()+1,00 say "│ В тому числi ПДВ - "+str(nNdc,15,2)+ "                                         │"
-     End
-     @ Prow()+1,00 say "│ м.п.    пiдпис       ────────────           Проведено банком               │ "
-     @ Prow()+1,00 say [│                                       <<__>> _____________ 200_ p.         │ ]
-     @ Prow()+1,00 say "│                      ────────────            пiдпис банку                  │"
-     @ Prow()+1,00 say "└────────────────────────────────────────────────────────────────────────────┘"
-     @ Prow()+1,00 say "  "
-
-     @ Prow()+1,00 say repl("= ",nLen/2)
-     @ prow()+1,00 say ""
-     set(24,"")
-     set(20,"SCREEN")
-     for i := 1 to nKolEkz
-        if S_TPRN("PlPor6.txt",,1) < 0 ; break ; End
-     Next
-     END SEQUENCE
-  End
-  if lAppend
-     PlPor->(DbAppend())
-     PlPor->GodPor:= dData
-     PlPor->PlPor := nPlPor
-  End
-  PlPor->DataPor := dDataPor
-  PlPor->EntPor  := nEnt
-  PlPor->SumPor  := nSumma
-  PlPor->Ndc     := nNdc
-  PlPor->Text1   := cText1
-  PlPor->Text2   := cText2
-End
-ferase("PlPor6.txt")
-S_wCloseSl(S_RanDom()%22+1)
-SetColor(ColorOld)
-return ( Nil )
-
-///////////////////////////////////////////////////////////////////////////
-Function PlPor3() // формирование и печать платежных поручений
-Local dData := year(sset[100]), nPlPor, i, nKolEkz, nSumma, nNdc,;
-      ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
-      GetList := {},cText1, cText2, dDataPor, aProp, nEnt, nLen
-Local NaimMec := NaimMes2()
-Local   pr:=0
-
-S_Open_M(07,03,19,59,sset[32],sset[2])
-While .t.
-  Scroll(01,01,MaxRow()-1,MaxCol()-1)
-  @ 10,01 say repl("─",MaxCol()-1)
-  @ 11,01 say padc(" Минутку....",MaxCol()-1) color sset[15]
-  if PlPor->(DbSeek(str(dData,4)))
-     While !PlPor->(eof()) .and. PlPor->GodPor == dData
-        nPlPor := PlPor->PlPor
-        PlPor->(DbSkip(1))
-     End
-     nPlPor++
-  else
-     nPlPor := 0
-  End
-  @ 11,01 say padc(" ESC - конец работы",MaxCol()-1) color sset[15]
-  @ 01,02 say "No платежного поручения" get nPlPor pict "999999" valid nPlPor > 0
-  read
-  if LastKey() == K_ESC ; exit ; End
-  if PlPor->(DbSeek(str(dData,4)+str(nPlPor,6)))
-     lAppend := .f.
-     @ 10,01 say padc(" КОРРЕКТИРУЕМ ПОРУЧЕНИЕ",MaxCol()-1) color sset[15]
-  else
-     @ 10,01 say padc(" РЕГИСТРИРУЕМ ПОРУЧЕНИЕ",MaxCol()-1) color sset[15]
-     lAppend := .t.
-     PlPor->(DbGoBottom())
-     PlPor->(DbSkip(1))
-  End
-  dDataPor  := PlPor->DataPor
-  nEnt      := PlPor->EntPor
-  nSumma    := PlPor->SumPor
-  nNdc      := PlPor->Ndc
-  cText1    := PlPor->Text1
-  cText2    := PlPor->Text2
-  cText3    := space(45)
-  S_Ent->(DbSeek(str(nEnt,4)))
-  @ 01,35 get pr pict "9"
-  @ 01,33 say "от "+dtoc(dDataPor)+" г."
-  @ 02,02 say "Организация "+str(nEnt,4)+" "+S_Ent->Naim
-  @ 03,14 say "МФО "+S_Ent->Mfo+" счет "+S_Ent->Schet
-  @ 04,14 say "ОКПО "+S_Ent->Okpo
-  @ 05,14 say "Банк "+S_Ent->Bank
-  @ 06,02 say "Сумма "+str(nSumma,15,2)+" грв."
-  @ 06,28 say "в т.ч. НДС "+str(nNdc,15,2)
-  @ 07,02 say "За что "+cText1
-  @ 08,02 say "       "+cText2
-  ///////////////////////////////////  G E T /////////////////////////
-  @ 01,36 get dDataPor pict "@d" valid !Empty(dDataPor)
-  @ 02,14 get nEnt pict "9999" valid VedEnt(@nEnt,02,19)
-  read
-  if LastKey()==K_ESC ; Loop ; End
-  @ 02,19 say S_Ent->Naim
-  @ 03,14 say "МФО "+S_Ent->Mfo+" счет "+S_Ent->Schet
-  @ 04,14 say "ОКПО "+S_Ent->Okpo
-  @ 05,14 say "Банк "+S_Ent->Bank
-  @ 06,08 get nSumma pict "999999999999.99" valid nSumma > 0
-  read
-  if LastKey()==K_ESC ; Loop ; End
-  nNdc := if(empty(nNdc),NEW_ROUND(nSumma*0.16667,2),nNdc)
-  @ 06,39 get nNdc   pict "999999999999.99" valid nNdc < nSumma .and. nNdc >= 0
-  @ 07,09 get cText1
-  @ 08,09 get cText2
-  @ 09,09 get cText3
-  read
-  if LastKey()==K_ESC ; Loop ; End
-  nKolEkz := 2
-  @ 11,01 say padc(" ",MaxCol()-1)
-  @ 11,07 say "Укажите количество экземпляров--->" get nKolEkz pict "99"
-  read
-  if LastKey()<>K_ESC .and. nKolEkz > 0
-     @ 11,01 say padc("Следите за печатью и бумагой",MaxCol()-1) color sset[15]
-     BEGIN SEQUENCE
-     nLen  := 65
-     aProp := PropisSum(nSumma,58)
-     set(20,"PRINT")
-     set(24,"PlPor6.txt")
-        if pr#0
-     @ prow()+1,00 say "В рахунок невiдкладных потреб "
-      endif
-     @ Prow()+1,00 say "┌────────────────────────────────────────────────────────────────────────────┐"
-     @ Prow()+1,00 say "│             ПЛАТIЖНЕ ДОРУЧЕННЯ N "+str(nPlPor,6)+ "               ┌─────────┐          │ "
-     @ Prow()+1,00 say "│                                   ──────              │ 0401001 │          │ "
-     @ Prow()+1,00 say "│            вiд <<"+str(day(ddataPor),2)+">>"+NaimMec[month(ddataPor)]+" "+str(year(ddataPor),4)+" р.               └─────────┘          │ "
-     @ Prow()+1,00 say "│                     ──   ───────     ─              Одержано банком        │  "
-     @ Prow()+1,00 say [│                                              << __>> _____________ 200_ р. │]
-     @ Prow()+1,00 say "│Платник  Первомайське  КПУВКХ                                               │ "
-     @ Prow()+1,00 say "│   ┌─────────┐                                                              │ "
-     @ Prow()+1,00 say "│Код│22714272 │                                                              │ "
-     @ Prow()+1,00 say "│   └─────────┘                                                              │  "
-     @ Prow()+1,00 say "│ Банк платника                Код банку     ДЕБЕТ рах. N       СУМА         │  "
-     @ Prow()+1,00 say "│                               ┌───────┐┌──────────────┬──────────────────┐ │"
-     @ Prow()+1,00 say "│Харкiвське ГРУ     ,ПриватБанк'│ 351533││26063348700006│"+strtran(str(nSumma,12,2),".",",")+ "      │ │"
-     @ Prow()+1,00 say "│ ──────────────────────────────└───────┘└──────────────┤                  │ │"
-     @ Prow()+1,00 say "│ Одержувач " +S_Ent->Naim+ "         │                  │ │"
-     @ Prow()+1,00 say "│      ┌───────────┐                      КРЕДИТ рах. N │                  │ │"
-     @ Prow()+1,00 say "│ Код  │"+S_Ent->Okpo+ "│                     ┌──────────────┤                  │ │"
-     @ Prow()+1,00 say "│      └───────────┘           Код банку │"+S_Ent->Schet+"│                  │ │   "
-     @ Prow()+1,00 say "│Банк Одержувачa             ┌─────────┐ ┌──────────────┤                  │ │  "
-     @ Prow()+1,00 say "│"+left(S_Ent->Bank,28)+"│"+S_Ent->Mfo+ "│ │              │                  │ │ "
-     @ Prow()+1,00 say "│                            └─────────┘ └──────────────└─────────────────── │ "
-     @ Prow()+1,00 say "│Сума словами "+aProp[1]+ "     │"
-     for i := 2 to Len(aProp)
-       @ Prow()+1,00 say "│             "+aProp[i]
-     Next
-     @ Prow()+1,00 say "│────────────────────────────────────────────────                            │ "
-     @ Prow()+1,00 say "│Призначення платежу "+cText1+ "           │"
-     @ Prow()+1,00 say "│                    "+cText2+ "           │"
-     @ Prow()+1,00 say "│                    "+cText3+ "           │"
-     @ Prow()+1,00 say "│                                                       ┌─────────┐          │"
-     @ Prow()+1,00 say "│                                                       └─────────┘          │"
-
-     @ Prow()+1,00 say "│ м.п.    пiдпис       ────────────           Проведено банком               │ "
-     @ Prow()+1,00 say [│                                       <<__>> _____________ 200_ p.         │ ]
-     @ Prow()+1,00 say "│                      ────────────            пiдпис банку                  │"
-     @ Prow()+1,00 say "└────────────────────────────────────────────────────────────────────────────┘"
-     @ Prow()+1,00 say "  "
-
-     @ Prow()+1,00 say repl("= ",nLen/2)
-     @ prow()+1,00 say ""
-     set(24,"")
-     set(20,"SCREEN")
-     for i := 1 to nKolEkz
-        if S_TPRN("PlPor6.txt",,1) < 0 ; break ; End
-     Next
-     END SEQUENCE
-  End
-  if lAppend
-     PlPor->(DbAppend())
-     PlPor->GodPor:= dData
-     PlPor->PlPor := nPlPor
-  End
-  PlPor->DataPor := dDataPor
-  PlPor->EntPor  := nEnt
-  PlPor->SumPor  := nSumma
-  PlPor->Ndc     := nNdc
-  PlPor->Text1   := cText1
-  PlPor->Text2   := cText2
-End
-ferase("PlPor6.txt")
-S_wCloseSl(S_RanDom()%22+1)
-SetColor(ColorOld)
-return ( Nil )
-
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-Function PlPor2() // формирование и печать платежных поручений
-Local dData := year(sset[100]), nPlPor, i, nKolEkz, nSumma, nNdc,;
-      ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
-      GetList := {},cText1, cText2, dDataPor, aProp, nEnt, nLen
-Local NaimMec := NaimMes2()
-Local   pr:=0
-
-S_Open_M(07,03,19,59,sset[32],sset[2])
-While .t.
-  Scroll(01,01,MaxRow()-1,MaxCol()-1)
-  @ 10,01 say repl("─",MaxCol()-1)
-  @ 11,01 say padc(" Минутку....",MaxCol()-1) color sset[15]
-  if PlPor->(DbSeek(str(dData,4)))
-     While !PlPor->(eof()) .and. PlPor->GodPor == dData
-        nPlPor := PlPor->PlPor
-        PlPor->(DbSkip(1))
-     End
-     nPlPor++
-  else
-     nPlPor := 0
-  End
-  @ 11,01 say padc(" ESC - конец работы",MaxCol()-1) color sset[15]
-  @ 01,02 say "No платежного поручения" get nPlPor pict "999999" valid nPlPor > 0
-  read
-  if LastKey() == K_ESC ; exit ; End
-  if PlPor->(DbSeek(str(dData,4)+str(nPlPor,6)))
-     lAppend := .f.
-     @ 10,01 say padc(" КОРРЕКТИРУЕМ ПОРУЧЕНИЕ",MaxCol()-1) color sset[15]
-  else
-     @ 10,01 say padc(" РЕГИСТРИРУЕМ ПОРУЧЕНИЕ",MaxCol()-1) color sset[15]
-     lAppend := .t.
-     PlPor->(DbGoBottom())
-     PlPor->(DbSkip(1))
-  End
-  dDataPor  := PlPor->DataPor
-  nEnt      := PlPor->EntPor
-  nSumma    := PlPor->SumPor
-  nNdc      := PlPor->Ndc
-  cText1    := PlPor->Text1
-  cText2    := PlPor->Text2
-  cText3    := space(45)
-  S_Ent->(DbSeek(str(nEnt,4)))
-  @ 01,35 get pr pict "9"
-  @ 01,33 say "от "+dtoc(dDataPor)+" г."
-  @ 02,02 say "Организация "+str(nEnt,4)+" "+S_Ent->Naim
-  @ 03,14 say "МФО "+S_Ent->Mfo+" счет "+S_Ent->Schet
-  @ 04,14 say "ОКПО "+S_Ent->Okpo
-  @ 05,14 say "Банк "+S_Ent->Bank
-  @ 06,02 say "Сумма "+str(nSumma,15,2)+" грв."
-  @ 06,28 say "в т.ч. НДС "+str(nNdc,15,2)
-  @ 07,02 say "За что "+cText1
-  @ 08,02 say "       "+cText2
-  ///////////////////////////////////  G E T /////////////////////////
-  @ 01,36 get dDataPor pict "@d" valid !Empty(dDataPor)
-  @ 02,14 get nEnt pict "9999" valid VedEnt(@nEnt,02,19)
-  read
-  if LastKey()==K_ESC ; Loop ; End
-  @ 02,19 say S_Ent->Naim
-  @ 03,14 say "МФО "+S_Ent->Mfo+" счет "+S_Ent->Schet
-  @ 04,14 say "ОКПО "+S_Ent->Okpo
-  @ 05,14 say "Банк "+S_Ent->Bank
-  @ 06,08 get nSumma pict "999999999999.99" valid nSumma > 0
-  read
-  if LastKey()==K_ESC ; Loop ; End
-  nNdc := if(empty(nNdc),NEW_ROUND(nSumma*0.16667,2),nNdc)
-  @ 06,39 get nNdc   pict "999999999999.99" valid nNdc < nSumma .and. nNdc >= 0
-  @ 07,09 get cText1
-  @ 08,09 get cText2
-  @ 09,09 get cText3
-  read
-  if LastKey()==K_ESC ; Loop ; End
-  nKolEkz := 2
-  @ 11,01 say padc(" ",MaxCol()-1)
-  @ 11,07 say "Укажите количество экземпляров--->" get nKolEkz pict "99"
-  read
-  if LastKey()<>K_ESC .and. nKolEkz > 0
-     @ 11,01 say padc("Следите за печатью и бумагой",MaxCol()-1) color sset[15]
-     BEGIN SEQUENCE
-     nLen  := 65
-     aProp := PropisSum(nSumma,58)
-     set(20,"PRINT")
-     set(24,"PlPor6.txt")
-        if pr#0
-     @ prow()+1,00 say "В рахунок невiдкладных потреб "
-      endif
-     @ Prow()+1,00 say "┌────────────────────────────────────────────────────────────────────────────┐"
-     @ Prow()+1,00 say "│             ПЛАТIЖНЕ ДОРУЧЕННЯ N "+str(nPlPor,6)+ "               ┌─────────┐          │ "
-     @ Prow()+1,00 say "│                                   ──────              │ 0401001 │          │ "
-     @ Prow()+1,00 say "│            вiд <<"+str(day(ddataPor),2)+">>"+NaimMec[month(ddataPor)]+" "+str(year(ddataPor),4)+" р.               └─────────┘          │ "
-     @ Prow()+1,00 say "│                     ──   ───────     ─              Одержано банком        │  "
-     @ Prow()+1,00 say [│                                              << __>> _____________ 200_ р. │]
-     @ Prow()+1,00 say "│Платник  Первомайське  КПУВКХ                                               │ "
-     @ Prow()+1,00 say "│   ┌─────────┐                                                              │ "
-     @ Prow()+1,00 say "│Код│22714272 │                                                              │ "
-     @ Prow()+1,00 say "│   └─────────┘                                                              │  "
-     @ Prow()+1,00 say "│ Банк платника                Код банку     ДЕБЕТ рах. N       СУМА         │  "
-     @ Prow()+1,00 say "│                               ┌───────┐┌──────────────┬──────────────────┐ │"
-     @ Prow()+1,00 say "│Харкiвське ГРУ     ,ПриватБанк'│ 351533││26007348700006│"+strtran(str(nSumma,12,2),".",",")+ "      │ │"
-     @ Prow()+1,00 say "│ ──────────────────────────────└───────┘└──────────────┤                  │ │"
-     @ Prow()+1,00 say "│ Одержувач " +S_Ent->Naim+ "         │                  │ │"
-     @ Prow()+1,00 say "│      ┌───────────┐                      КРЕДИТ рах. N │                  │ │"
-     @ Prow()+1,00 say "│ Код  │"+S_Ent->Okpo+ "│                     ┌──────────────┤                  │ │"
-     @ Prow()+1,00 say "│      └───────────┘           Код банку │"+S_Ent->Schet+"│                  │ │   "
-     @ Prow()+1,00 say "│Банк Одержувачa             ┌─────────┐ ┌──────────────┤                  │ │  "
-     @ Prow()+1,00 say "│"+left(S_Ent->Bank,28)+"│"+S_Ent->Mfo+ "│ │              │                  │ │ "
-     @ Prow()+1,00 say "│                            └─────────┘ └──────────────└─────────────────── │ "
-     @ Prow()+1,00 say "│Сума словами "+aProp[1]+ "     │"
-     for i := 2 to Len(aProp)
-       @ Prow()+1,00 say "│             "+aProp[i]
-     Next
-     @ Prow()+1,00 say "│────────────────────────────────────────────────                            │ "
-     @ Prow()+1,00 say "│Призначення платежу "+cText1+ "           │"
-     @ Prow()+1,00 say "│                    "+cText2+ "           │"
-     @ Prow()+1,00 say "│                    "+cText3+ "           │"
-     @ Prow()+1,00 say "│                                                       ┌─────────┐          │"
-     @ Prow()+1,00 say "│                                                       └─────────┘          │"
-
-     if nNdc > 0
-        @ Prow()+1,00 say "│ В тому числi ПДВ - "+str(nNdc,15,2)+ "                                         │"
-     End
-     @ Prow()+1,00 say "│ м.п.    пiдпис       ────────────           Проведено банком               │ "
-     @ Prow()+1,00 say [│                                       <<__>> _____________ 200_ p.         │ ]
-     @ Prow()+1,00 say "│                      ────────────            пiдпис банку                  │"
-     @ Prow()+1,00 say "└────────────────────────────────────────────────────────────────────────────┘"
-     @ Prow()+1,00 say "  "
-
-     @ Prow()+1,00 say repl("= ",nLen/2)
-     @ prow()+1,00 say ""
-     set(24,"")
-     set(20,"SCREEN")
-     for i := 1 to nKolEkz
-        if S_TPRN("PlPor6.txt",,1) < 0 ; break ; End
-     Next
-     END SEQUENCE
-  End
-  if lAppend
-     PlPor->(DbAppend())
-     PlPor->GodPor:= dData
-     PlPor->PlPor := nPlPor
-  End
-  PlPor->DataPor := dDataPor
-  PlPor->EntPor  := nEnt
-  PlPor->SumPor  := nSumma
-  PlPor->Ndc     := nNdc
-  PlPor->Text1   := cText1
-  PlPor->Text2   := cText2
-End
-ferase("PlPor6.txt")
-S_wCloseSl(S_RanDom()%22+1)
-SetColor(ColorOld)
-return ( Nil )
-
-
-///////////////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////////
-Function PlPor282() // формирование и печать платежных поручений
-Local dData := year(sset[100]), nPlPor, i, nKolEkz, nSumma, nNdc,;
-      ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
-      GetList := {},cText1, cText2, dDataPor, aProp, nEnt, nLen
-Local NaimMec := NaimMes2()
-Local   pr:=0
-
-S_Open_M(07,03,19,59,sset[32],sset[2])
-While .t.
-  Scroll(01,01,MaxRow()-1,MaxCol()-1)
-  @ 10,01 say repl("─",MaxCol()-1)
-  @ 11,01 say padc(" Минутку....",MaxCol()-1) color sset[15]
-  if PlPor->(DbSeek(str(dData,4)))
-     While !PlPor->(eof()) .and. PlPor->GodPor == dData
-        nPlPor := PlPor->PlPor
-        PlPor->(DbSkip(1))
-     End
-     nPlPor++
-  else
-     nPlPor := 0
-  End
-  @ 11,01 say padc(" ESC - конец работы",MaxCol()-1) color sset[15]
-  @ 01,02 say "No платежного поручения" get nPlPor pict "999999" valid nPlPor > 0
-  read
-  if LastKey() == K_ESC ; exit ; End
-  if PlPor->(DbSeek(str(dData,4)+str(nPlPor,6)))
-     lAppend := .f.
-     @ 10,01 say padc(" КОРРЕКТИРУЕМ ПОРУЧЕНИЕ",MaxCol()-1) color sset[15]
-  else
-     @ 10,01 say padc(" РЕГИСТРИРУЕМ ПОРУЧЕНИЕ",MaxCol()-1) color sset[15]
-     lAppend := .t.
-     PlPor->(DbGoBottom())
-     PlPor->(DbSkip(1))
-  End
-  dDataPor  := PlPor->DataPor
-  nEnt      := PlPor->EntPor
-  nSumma    := PlPor->SumPor
-  nNdc      := PlPor->Ndc
-  cText1    := PlPor->Text1
-  cText2    := PlPor->Text2
-  cText3    := space(45)
-  S_Ent->(DbSeek(str(nEnt,4)))
-  @ 01,35 get pr pict "9"
-  @ 01,33 say "от "+dtoc(dDataPor)+" г."
-  @ 02,02 say "Организация "+str(nEnt,4)+" "+S_Ent->Naim
-  @ 03,14 say "МФО "+S_Ent->Mfo+" счет "+S_Ent->Schet
-  @ 04,14 say "ОКПО "+S_Ent->Okpo
-  @ 05,14 say "Банк "+S_Ent->Bank
-  @ 06,02 say "Сумма "+str(nSumma,15,2)+" грв."
-  @ 06,28 say "в т.ч. НДС "+str(nNdc,15,2)
-  @ 07,02 say "За что "+cText1
-  @ 08,02 say "       "+cText2
-  ///////////////////////////////////  G E T /////////////////////////
-  @ 01,36 get dDataPor pict "@d" valid !Empty(dDataPor)
-  @ 02,14 get nEnt pict "9999" valid VedEnt(@nEnt,02,19)
-  read
-  if LastKey()==K_ESC ; Loop ; End
-  @ 02,19 say S_Ent->Naim
-  @ 03,14 say "МФО "+S_Ent->Mfo+" счет "+S_Ent->Schet
-  @ 04,14 say "ОКПО "+S_Ent->Okpo
-  @ 05,14 say "Банк "+S_Ent->Bank
-  @ 06,08 get nSumma pict "999999999999.99" valid nSumma > 0
-  read
-  if LastKey()==K_ESC ; Loop ; End
-  nNdc := if(empty(nNdc),NEW_ROUND(nSumma*0.16667,2),nNdc)
-  @ 06,39 get nNdc   pict "999999999999.99" valid nNdc < nSumma .and. nNdc >= 0
-  @ 07,09 get cText1
-  @ 08,09 get cText2
-  @ 09,09 get cText3
-  read
-  if LastKey()==K_ESC ; Loop ; End
-  nKolEkz := 2
-  @ 11,01 say padc(" ",MaxCol()-1)
-  @ 11,07 say "Укажите количество экземпляров--->" get nKolEkz pict "99"
-  read
-  if LastKey()<>K_ESC .and. nKolEkz > 0
-     @ 11,01 say padc("Следите за печатью и бумагой",MaxCol()-1) color sset[15]
-     BEGIN SEQUENCE
-     nLen  := 65
-     aProp := PropisSum(nSumma,58)
-     set(20,"PRINT")
-     set(24,"PlPor6.txt")
-        if pr#0
-     @ prow()+1,00 say "В рахунок невiдкладных потреб "
-      endif
-     @ Prow()+1,00 say "┌────────────────────────────────────────────────────────────────────────────┐"
-     @ Prow()+1,00 say "│             ПЛАТIЖНЕ ДОРУЧЕННЯ N "+str(nPlPor,6)+ "               ┌─────────┐          │ "
-     @ Prow()+1,00 say "│                                   ──────              │ 0401001 │          │ "
-     @ Prow()+1,00 say "│            вiд <<"+str(day(ddataPor),2)+">>"+NaimMec[month(ddataPor)]+" "+str(year(ddataPor),4)+" р.               └─────────┘          │ "
-     @ Prow()+1,00 say "│                     ──   ───────     ─              Одержано банком        │  "
-     @ Prow()+1,00 say [│                                              << __>> _____________ 200_ р. │]
-     @ Prow()+1,00 say "│Платник  Первомайське  КПУВКХ                                               │ "
-     @ Prow()+1,00 say "│   ┌─────────┐                                                              │ "
-     @ Prow()+1,00 say "│Код│22714272 │                                                              │ "
-     @ Prow()+1,00 say "│   └─────────┘                                                              │  "
-     @ Prow()+1,00 say "│ Банк платника                Код банку     ДЕБЕТ рах. N       СУМА         │  "
-     @ Prow()+1,00 say "│                               ┌───────┐ ┌─────────────┬──────────────────┐ │"
-     @ Prow()+1,00 say "│ошадбанк 2856 в м.Первомайське │ 350017│ │ 25420301216 │"+strtran(str(nSumma,12,2),".",",")+ "      │ │"
-     @ Prow()+1,00 say "│ ──────────────────────────────└───────┘ └─────────────┤                  │ │"
-     @ Prow()+1,00 say "│ Одержувач " +S_Ent->Naim+ "         │                  │ │"
-     @ Prow()+1,00 say "│      ┌───────────┐                      КРЕДИТ рах. N │                  │ │"
-     @ Prow()+1,00 say "│ Код  │"+S_Ent->Okpo+ "│                     ┌──────────────┤                  │ │"
-     @ Prow()+1,00 say "│      └───────────┘           Код банку │"+S_Ent->Schet+"│                  │ │   "
-     @ Prow()+1,00 say "│Банк Одержувачa             ┌─────────┐ ┌──────────────┤                  │ │  "
-     @ Prow()+1,00 say "│"+left(S_Ent->Bank,28)+"│"+S_Ent->Mfo+ "│ │              │                  │ │ "
-     @ Prow()+1,00 say "│                            └─────────┘ └──────────────└─────────────────── │ "
-     @ Prow()+1,00 say "│Сума словами "+aProp[1]+ "     │"
-     for i := 2 to Len(aProp)
-       @ Prow()+1,00 say "│             "+aProp[i]
-     Next
-     @ Prow()+1,00 say "│────────────────────────────────────────────────                            │ "
-     @ Prow()+1,00 say "│Призначення платежу "+cText1+ "           │"
-     @ Prow()+1,00 say "│                    "+cText2+ "           │"
-     @ Prow()+1,00 say "│                    "+cText3+ "           │"
-     @ Prow()+1,00 say "│                                                       ┌─────────┐          │"
-//     @ Prow()+1,00 say "│                                                       │                  │"
-     @ Prow()+1,00 say "│                                                       └─────────┘          │"
-
-     if nNdc > 0
-        @ Prow()+1,00 say "│ В тому числi ПДВ - "+str(nNdc,15,2)+ "                                         │"
-     End
-//     @ Prow()+1,00 say "│                                                                            │  "
-     @ Prow()+1,00 say "│ м.п.    пiдпис       ────────────           Проведено банком               │ "
-     @ Prow()+1,00 say [│                                       <<__>> _____________ 200_ p.         │ ]
-//     @ Prow()+1,00 say "│                                                                            │"
-     @ Prow()+1,00 say "│                      ────────────            пiдпис банку                  │"
-//     @ Prow()+1,00 say "│                                                                            │"
-     @ Prow()+1,00 say "└────────────────────────────────────────────────────────────────────────────┘"
-     @ Prow()+1,00 say "  "
-
-     @ Prow()+1,00 say repl("= ",nLen/2)
-     @ prow()+1,00 say ""
-     set(24,"")
-     set(20,"SCREEN")
-     for i := 1 to nKolEkz
-        if S_TPRN("PlPor6.txt",,1) < 0 ; break ; End
-     Next
-     END SEQUENCE
-  End
-  if lAppend
-     PlPor->(DbAppend())
-     PlPor->GodPor:= dData
-     PlPor->PlPor := nPlPor
-  End
-  PlPor->DataPor := dDataPor
-  PlPor->EntPor  := nEnt
-  PlPor->SumPor  := nSumma
-  PlPor->Ndc     := nNdc
-  PlPor->Text1   := cText1
-  PlPor->Text2   := cText2
-End
-ferase("PlPor6.txt")
-S_wCloseSl(S_RanDom()%22+1)
-SetColor(ColorOld)
-return ( Nil )
+                @ Prow()+1,00 say repl("= ",nLen/2)
+                @ prow()+1,00 say ""
+                set(24,"")
+                set(20,"SCREEN")
+               
+                for i := 1 to nKolEkz
+                    if S_TPRN("PlPor6.txt",,1) < 0 ; break ; End
+                Next
+            END SEQUENCE
+        ENDIF
+        if lAppend
+            PlPor->(DbAppend())
+            PlPor->GodPor:= nYear
+            PlPor->PlPor := nPlPor
+        End
+        PlPor->DataPor := dDataPor
+        PlPor->BankPor := nBank
+        PlPor->EntPor  := nEnt
+        PlPor->SumPor  := nSumma
+        PlPor->Ndc     := nNdc
+        PlPor->Text1   := cText1
+        PlPor->Text2   := cText2
+    End
+    ferase("PlPor6.txt")
+    S_wCloseSl(S_RanDom()%22+1)
+    SetColor(ColorOld)
+    return ( Nil )
 
 Static function PropisSum(Sum,Dlina,Krb,Kop)
 local Bank,Sumc,Prop,i,T,J,Kc,P,K,Adr,Baza, Ret := {}
@@ -863,6 +260,7 @@ if len(Bank)>0
    aadd(Ret,padr(StrTran(Bank,"#"," "),Dlina))
 end
 Return ( Ret )
+
 //////////////////////////////////////////////////////////////////////////////
 Function ChFakt() // формирование и печать счет-фактуры
 Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
