@@ -166,6 +166,227 @@ Function PlPor() // формирование и печать платежных поручений
     SetColor(ColorOld)
     return ( Nil )
 
+////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+Function ChFaktU() // формирование и печать счет-фактуры на украинском
+    LOCAL ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32])
+    LOCAL GetList := {}
+    LOCAL CursorOld := SetCursor(1)
+    LOCAL NaimMec := NaimMes()
+    LOCAL lAppend
+    LOCAL nChFakt, nEnt, nKolEkz, dDataCh, dData, nLen, cDogovor, dDataDog
+
+    S_Open_M(07,03,18,59,sset[32],sset[2])
+    While .t.
+        Scroll(01,01,MaxRow()-1,MaxCol()-1)
+        @ MaxRow()-1,01 say padc(" ESC - конец работы",MaxCol()-1) color sset[15]
+
+        // Получаем очередной номер Счета-фактуры
+        Fakt->(DbGoBottom())
+        nChFakt := Fakt->NomChF + 1
+        @ 02,02 say "N счет-фактуры" get nChFakt pict "999999" valid nChFakt > 0
+        read
+        if LastKey() == K_ESC ; exit ; End
+        if Fakt->(Dbseek(str(nChFakt,6)))
+            lAppend := .f.
+            @ MaxRow()-2,01 say padc(" КОРРЕКТИРУЕМ СЧЕТ-ФАКТУРУ",MaxCol()-1) color sset[15]
+        else
+            @ MaxRow()-2,01 say padc(" РЕГИСТРИРУЕМ СЧЕТ-ФАКТУРУ",MaxCol()-1) color sset[15]
+            lAppend := .t.
+            aFakt := {}
+            Fakt->(DbGoBottom())
+            Fakt->(DbSkip(1))
+        End
+        
+        nChFakt := Fakt->NomChF
+        dDataCh := Fakt->DataCh 
+        dData   := Fakt->Data
+        nBank   := Fakt->Bank
+        nEnt    := Fakt->Ent
+//        cEdIzm  := Fakt->EdIzm
+//        nKolvo  := Fakt->Kolvo
+//        nCena   := Fakt->Cena
+//        cNaim   := Fakt->Naim
+//        nSumma  := Fakt->Summa
+//        nNdc    := Fakt->Ndc
+//        nFec    := Fakt->Fec
+//        nSumBank := Fakt->SumBank
+//        nChet    := Fakt->Chet
+        
+        S_BANK->(DbSeek(str(nBank,3)))
+        S_Ent->(DbSeek(str(nEnt,4)))
+
+        @ 02,24 SAY "от "+dtoc(dDataCh)+" г."
+        @ 03,02 say "за "+dtoc(dData)+" г."
+        @ 04,02 say "В банк "+str(nBank,3)+"  "+S_BANK->Naim
+        @ 05,14 say " МФО: "+S_BANK->Mfo+" счет: "+S_BANK->Schet
+        @ 06,02 say "Организация "+str(nEnt,4)+" "+S_Ent->Naim
+        @ 07,14 say " МФО: "+S_Ent->Mfo+" счет: "+S_Ent->Schet
+        @ MaxRow()-3,01 say padc(" ",MaxCol()-1)
+        
+        @ 02,27 GET dDataCh PICTURE "@d" valid !Empty(dDataCh)
+        @ 03,05 GET dData   PICTURE "@d" valid !Empty(dData)
+        @ 04,09 GET nBank   PICTURE "999" valid VedBank(@nBank,04,14)
+        if LastKey()==K_ESC ; Loop ; End
+        S_BANK->(DbSeek(str(nBank,3)))
+        @ 05,14 SAY " МФО: "+S_BANK->Mfo+" счет: "+S_BANK->Schet
+        //
+        @ 06,14 GET nEnt pict "9999" valid VedEnt(@nEnt,06,14)
+        READ
+        if LastKey()==K_ESC ; Loop ; End
+        // Есть данные?
+        if !Prixod->(DbSeek(str(nEnt,4)))
+            S_Beep()
+            @ MaxRow()-2,01 say padc(" Отсутствуют данные",MaxCol()-1) color sset[15]
+            M_inkey(0)
+            LOOP
+        End
+        cDogovor := S_Ent->Dogovor
+        dDataDog := S_Ent->DataDog
+        if Empty(cDogovor) .or. Empty(dDataDog)
+            S_Open_M(16,07,18,42,sset[32],sset[2])
+            @ 01,01 say "Договор" get cDogovor
+            @ 01,20 say "от" get dDataDog pict "@d"
+            read
+            if LastKey() <> K_ESC
+              S_Ent->Dogovor := cDogovor
+              S_Ent->DataDog := dDataDog
+            End
+            S_wCloseSl(S_RanDom()%22+1)
+        End
+        @ 07,14 SAY " МФО: "+S_Ent->Mfo+" счет: "+S_Ent->Schet
+        nKolEkz := 2
+        @ 08,07 SAY "Укажите количество экземпляров--->" GET nKolEkz PICTURE "99"
+        IF LastKey()<>K_ESC //.and. nKolEkz > 0
+            @ MaxRow()-2,01 say padc(" Следите за печатью",MaxCol()-1) color sset[15]
+            cNaimMec := NaimMec[Month(dData)]
+            BEGIN SEQUENCE
+                nLen  := 73
+                nSumma:= 0
+                S_Ent->(DbSeek(str(nEnt,4)))
+                set(20,"PRINT")
+                set(24,"ChFakt.txt")
+                @ Prow()+1,00 say " "
+                @ Prow()+1,00 say padc("Р А Х У Н О К - Ф А К Т У Р А  N "+alltrim(str(nChFakt,6)),nLen)
+                @ Prow()+1,00 say padc("вiд "+dtoc(dDataCh),nLen)
+                @ Prow()+1,00 say " "
+                @ Prow()+1,00 say " ПОСТАЧАЛЬНИК: Первомайське КВУВКГ"
+                @ Prow()+1,00 say "          р/р "+S_BANK->Schet+" Код 22714272 МФО "+S_BANK->Mfo
+                @ Prow()+1,00 say "             "+S_BANK->Naim
+                @ Prow()+1,00 say " ПЛАТHИК: "+S_Ent->Naim
+                @ Prow()+1,00 say "             "+S_Ent->Naim2
+                @ Prow()+1,00 say "о/р"+str(S_Ent->Ent,4)+"р/р "+S_Ent->Schet+" Код "+S_Ent->Okpo+" МФО "+S_Ent->Mfo
+                @ Prow()+1,00 say "             "+S_Ent->Bank
+                @ Prow()+1,00 say " "
+                @ Prow()+1,00 say " Договiр "+cDogovor+" вiд "+dtoc(dDataDog)
+                @ prow()+1,00 say "-------------------------------------------------------------------------"
+                @ Prow()+1,00 say "Вимiр| Кiлькiсть  |    Цiна     | Найменування           |     Сума     |"
+                @ prow()+1,00 say "-------------------------------------------------------------------------"
+                IF lAppend
+                    While Prixod->Ent == nEnt .and. !Prixod->(eof())
+                        @ prow()+1,00 say "м.куб "+str(Prixod->Kolvo,12)+" "+str(Prixod->Cena,9,6)+" "+;
+                            padr(iNaim(Prixod->Chet)+" за "+cNaimMec,24)+" "+;
+                            str(Prixod->Summa-Prixod->Ndc-Prixod->Fec-Prixod->SumBank,14,2)
+                        S_Price->(DbSeek(str(Prixod->Chet,4,0)+str(S_Ent->Tip,1)))
+                        if !Empty(Prixod->Ndc)
+                            @ prow()+1,00 say space(33)+padr("ПДВ "+;
+                                iif(S_Price->Ndc=0,"",str(S_Price->Ndc*100,4,1)+"%"),24)+" "+str(Prixod->Ndc,14,2)
+                        End
+                        if !Empty(Prixod->Fec)
+                            @ prow()+1,00 say space(33)+padr("ПРС "+;
+                                iif(S_Price->Fec=0,"",str(S_Price->Fec*100,4,1)+"%"),24)+" "+str(Prixod->Fec,14,2)
+                        End
+                        if !Empty(Prixod->SumBank)
+                            @ prow()+1,00 say space(33)+padr("Услуги банка ",24)+" "+str(Prixod->SumBank,14,2)
+                        End
+                        if !Empty(Prixod->Ndc) .or. !Empty(Prixod->Fec) .or. !Empty(Prixod->SumBank)
+                            @ prow()+1,00 say space(33)+padr("Всьoго ",24)+" "+;
+                                str(Prixod->Summa,14,2)
+                        End
+                        nSumma += Prixod->Summa
+                        aadd(aFakt,{"м.куб ",Prixod->Kolvo,Prixod->Cena,;
+                                  padr(iNaim(Prixod->Chet)+" за "+cNaimMec,24),;
+                                  Prixod->Summa,;
+                                  Prixod->Ndc,Prixod->Fec,Prixod->SumBank,Prixod->Chet})
+                        Prixod->(DbSkip(1))
+                    End
+                ELSE
+                    While Fakt->NomChF == nChFakt .and. !Fakt->(eof())
+                        @ prow()+1,00 say Left(Fakt->EdIzm,5)+" "+str(Fakt->Kolvo,12)+" "+str(Fakt->Cena,9,6)+" "+;
+                            Left(Fakt->Naim,22)+" "+;
+                            str(Fakt->Summa-Fakt->Ndc-Fakt->Fec-Fakt->SumBank,14,2)
+                        if !Empty(Fakt->Ndc)
+                            @ prow()+1,00 say space(33)+padr("ПДВ ",24)+" "+str(Fakt->Ndc,14,2)
+                        End
+                        if !Empty(Fakt->Fec)
+                            @ prow()+1,00 say space(33)+padr("ПРС ",24)+" "+str(Fakt->Fec,14,2)
+                        End
+                        if !Empty(Fakt->SumBank)
+                            @ prow()+1,00 say space(33)+padr("Услуги банка ",24)+" "+str(Fakt->SumBank,14,2)
+                        End
+                        if !Empty(Fakt->Ndc) .or. !Empty(Fakt->Fec) .or. !Empty(Fakt->SumBank)
+                            @ prow()+1,00 say space(33)+padr("Всьoго ",24)+" "+;
+                                str(Fakt->Summa,14,2)
+                        End
+                        nSumma += Fakt->Summa
+                        Fakt->(DbSkip(1))
+                    End
+                ENDIF
+                @ prow()+1,00 say space(33)+padr("Разом за мiсяць",24)+" "+str(nSumma,14,2)
+                @ Prow()+1,00 say " "
+                @ Prow()+1,00 say " "
+                aProp := PropisSum(nSumma,59)
+                @ Prow()+1,00 say "Сума до сплати: "+aProp[1]
+                for i := 2 to len(aProp)
+                    @ Prow()+1,00 say "                "+aProp[i]
+                Next
+                @ Prow()+1,00 say " "
+                @ Prow()+1,00 say "  Начальник                           Котовчихiн В.В."
+                @ Prow()+1,00 say " "
+                @ Prow()+1,00 say "  Гол. бухгалтер                         Ужегова  Г.П."
+                @ Prow()+1,00 say " "
+                @ Prow()+1,00 say " "
+                @ Prow()+1,00 say repl("= ",nLen/2)
+                @ prow()+1,00 say ""
+                set(24,"")
+                set(20,"SCREEN")
+                for i := 1 to nKolEkz
+//                    if S_TPRN("ChFakt.txt",,1) < 0 ; break ; End
+                Next
+            END SEQUENCE
+            IF lAppend .and. len(aFakt)>0
+                if Fakt->(DbSeek(Str(nChFakt,6)))
+                    While Fakt->NomChF == nChFakt .and. !Fakt->(eof())
+                        Fakt->(DbDelete())
+                        Fakt->(DbSkip(1))
+                    End
+                End
+                For i := 1 to len(aFakt)
+                    Fakt->(DbAppend())
+                    Fakt->NomChF  := nChFakt
+                    Fakt->DataCh  := dDataCh
+                    Fakt->Data    := dData
+                    Fakt->Ent     := nEnt
+                    Fakt->EdIzm   := aFakt[i][1]
+                    Fakt->Kolvo   := aFakt[i][2]
+                    Fakt->Cena    := aFakt[i][3]
+                    Fakt->Naim    := aFakt[i][4]
+                    Fakt->Summa   := aFakt[i][5]
+                    Fakt->Ndc     := aFakt[i][6]
+                    Fakt->Fec     := aFakt[i][7]
+                    Fakt->SumBank := aFakt[i][8]
+                    Fakt->Chet    := aFakt[i][9]
+                Next
+            ENDIF
+//            ferase("ChFakt.txt")
+        ENDIF
+    End
+    S_wCloseSl(S_RanDom()%22+1)
+    SetColor(ColorOld)
+    return ( Nil )
+
+////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 Static function PropisSum(Sum,Dlina,Krb,Kop)
     local Bank,Sumc,Prop,i,T,J,Kc,P,K,Adr,Baza, Ret := {}
     Bank := "001одна 002двi 003три 004чотири 005п'ять "+;
@@ -492,258 +713,6 @@ Function ChFakt() // формирование и печать счет-фактуры на русском
                     @ Prow()+1,00 say "  Начальник                  Котовчихiн В.В. "
                     @ Prow()+1,00 say " "
                     @ Prow()+1,00 say "  Гл. бухгалтер                Ужегова  Г.П."
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say repl("= ",nLen/2)
-                    @ prow()+1,00 say ""
-                    set(24,"")
-                    set(20,"SCREEN")
-                    for i := 1 to nKolEkz
-                        if S_TPRN("ChFakt.txt",,1) < 0 ; break ; End
-                    Next
-                END SEQUENCE
-            End
-        End
-    End
-    ferase("ChFakt.txt")
-    S_wCloseSl(S_RanDom()%22+1)
-    SetColor(ColorOld)
-    return ( Nil )
-////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-Function ChFaktU() // формирование и печать счет-фактуры на украинском
-    Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
-          GetList := {}, CursorOld := SetCursor(1)
-
-    Local NaimMec := NaimMes("ru")
-
-    S_Open_M(07,03,15,41,sset[32],sset[2])
-    While .t.
-        Fakt->(DbGoBottom())
-        nChFakt := Fakt->NomChF + 1
-        Scroll(01,01,MaxRow()-1,MaxCol()-1)
-        @ MaxRow()-1,01 say padc(" ESC - конец работы",MaxCol()-1) color sset[15]
-        nEnt := 0
-        nKolEkz := 2
-        @ 02,02 say "N счет-фактуры" get nChFakt pict "999999" valid nChFakt > 0
-        read
-        if LastKey() == K_ESC ; exit ; End
-        if !(lFakt := Fakt->(Dbseek(str(nChFakt,6))))
-            dDataCh := Fakt->DataCh
-            dData   := Fakt->Data
-            nEnt    := Fakt->Ent
-            @ 02,24 say "от" get dDataCh pict "@d" valid !Empty(dDataCh)
-            @ 03,02 say "за" get dData   pict "@d" valid !Empty(dData)
-            @ 03,16 say "в кол-ве" get nKolEkz pict "99" valid nKolEkz >= 0
-            read
-            if LastKey() == K_ESC ; exit ; End
-            @ 05,02 say "Код организации" get nEnt pict "9999" valid VedEnt(@nEnt,06,02)
-            read
-            if LastKey() == K_ESC ; exit ; End
-            if nKolEkz > 0
-                if !Prixod->(DbSeek(str(nEnt,4)))
-                    S_Beep()
-                    @ MaxRow()-1,01 say padc(" Отсутствуют данные",MaxCol()-1) color sset[15]
-                    M_inkey(0)
-                    Loop
-                End
-                @ MaxRow()-1,01 say padc(" Следите за печатью",MaxCol()-1) color sset[15]
-                cNaimMec := NaimMec[Month(dData)]
-                BEGIN SEQUENCE
-                    nLen  := 73
-                    nSumma:= 0
-                    S_Ent->(DbSeek(str(nEnt,4)))
-                    cDogovor := S_Ent->Dogovor
-                    dDataDog := S_Ent->DataDog
-                    if Empty(cDogovor) .or. Empty(dDataDog)
-                        S_Open_M(16,07,18,42,sset[32],sset[2])
-                        @ 01,01 say "Договор" get cDogovor
-                        @ 01,20 say "от" get dDataDog pict "@d"
-                        read
-                        if LastKey() <> K_ESC
-                          S_Ent->Dogovor := cDogovor
-                          S_Ent->DataDog := dDataDog
-                        End
-                        S_wCloseSl(S_RanDom()%22+1)
-                    End
-                    set(20,"PRINT")
-                    set(24,"ChFakt.txt")
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say padc("Р А Х У Н О К - Ф А К Т У Р А  N "+alltrim(str(nChFakt,6)),nLen)
-                    @ Prow()+1,00 say padc("вiд "+dtoc(dDataCh),nLen)
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say " ПОСТАЧАЛЬНИК: Первомайське КВУВКГ"
-                    @ Prow()+1,00 say "          р/р 26007300253580 Код 22714272 МФО 351823"
-                    @ Prow()+1,00 say "В ТВБТ 10020/0525 фiлii Харкiвського обласного"
-                    @ Prow()+1,00 say [ управлiння АТ,Ощадбанк'м Первомайський  ]
-                    @ Prow()+1,00 say " ПЛАТHИК: "+S_Ent->Naim
-                    @ Prow()+1,00 say "             "+S_Ent->Naim2
-                    @ Prow()+1,00 say "о/р"+str(S_Ent->Ent,4)+"р/р "+S_Ent->Schet+" Код "+S_Ent->Okpo+" МФО "+S_Ent->Mfo
-            //       @ Prow()+1,00 say "             счет "+S_Ent->Schet+" Код "+S_Ent->Okpo+" МФО "+S_Ent->Mfo
-                    @ Prow()+1,00 say "             "+S_Ent->Bank
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say " Договiр "+cDogovor+" вiд "+dtoc(dDataDog)
-                    @ prow()+1,00 say "-------------------------------------------------------------------------"
-                    @ Prow()+1,00 say "Вимiр| Кiлькiсть  |    Цiна     | Найменування           |     Сума     |"
-                    @ prow()+1,00 say "-------------------------------------------------------------------------"
-                    aFakt := {}
-                    While Prixod->Ent == nEnt .and. !Prixod->(eof())
-                        @ prow()+1,00 say "м.куб "+str(Prixod->Kolvo,12)+" "+str(Prixod->Cena,9,6)+" "+;
-                            padr(iNaim(Prixod->Chet)+" за "+cNaimMec,24)+" "+;
-                            str(Prixod->Summa-Prixod->Ndc-Prixod->Fec-Prixod->SumBank,14,2)
-                        S_Price->(DbSeek(str(Prixod->Chet,4,0)+str(S_Ent->Tip,1)))
-                        if !Empty(Prixod->Ndc)
-                            @ prow()+1,00 say space(33)+padr("ПДВ "+;
-                                iif(S_Price->Ndc=0,"",str(S_Price->Ndc*100,4,1)+"%"),24)+" "+str(Prixod->Ndc,14,2)
-                        End
-                        if !Empty(Prixod->Fec)
-                            @ prow()+1,00 say space(33)+padr("ПРС "+;
-                                iif(S_Price->Fec=0,"",str(S_Price->Fec*100,4,1)+"%"),24)+" "+str(Prixod->Fec,14,2)
-                        End
-                        if !Empty(Prixod->SumBank)
-                            @ prow()+1,00 say space(33)+padr("Услуги банка ",24)+" "+str(Prixod->SumBank,14,2)
-                        End
-                        if !Empty(Prixod->Ndc) .or. !Empty(Prixod->Fec) .or. !Empty(Prixod->SumBank)
-                            @ prow()+1,00 say space(33)+padr("Всьoго ",24)+" "+;
-                                str(Prixod->Summa,14,2)
-                        End
-                        nSumma += Prixod->Summa
-                        aadd(aFakt,{"м.куб ",Prixod->Kolvo,Prixod->Cena,;
-                                  padr(iNaim(Prixod->Chet)+" за "+cNaimMec,24),;
-                                  Prixod->Summa,;
-                                  Prixod->Ndc,Prixod->Fec,Prixod->SumBank,Prixod->Chet})
-                        Prixod->(DbSkip(1))
-                    End
-                    @ prow()+1,00 say space(33)+padr("Разом за мiсяць",24)+" "+str(nSumma,14,2)
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say " "
-                    aProp := PropisSum(nSumma,59)
-                    @ Prow()+1,00 say "Сума до сплати: "+aProp[1]
-                    for i := 2 to len(aProp)
-                        @ Prow()+1,00 say "                "+aProp[i]
-                    Next
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say "  Начальник                           Котовчихiн В.В."
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say "  Гол. бухгалтер                         Ужегова  Г.П."
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say repl("= ",nLen/2)
-                    @ prow()+1,00 say ""
-                    set(24,"")
-                    set(20,"SCREEN")
-                    for i := 1 to nKolEkz
-                        if S_TPRN("ChFakt.txt",,1) < 0 ; break ; End
-                    Next
-                END SEQUENCE
-                if Fakt->(DbSeek(Str(nChFakt,6)))
-                    While Fakt->NomChF == nChFakt .and. !Fakt->(eof())
-                        Fakt->(DbDelete())
-                        Fakt->(DbSkip(1))
-                    End
-                End
-                For i := 1 to len(aFakt)
-                    Fakt->(DbAppend())
-                    Fakt->NomChF  := nChFakt
-                    Fakt->DataCh  := dDataCh
-                    Fakt->Data    := dData
-                    Fakt->Ent     := nEnt
-                    Fakt->EdIzm   := aFakt[i][1]
-                    Fakt->Kolvo   := aFakt[i][2]
-                    Fakt->Cena    := aFakt[i][3]
-                    Fakt->Naim    := aFakt[i][4]
-                    Fakt->Summa   := aFakt[i][5]
-                    Fakt->Ndc     := aFakt[i][6]
-                    Fakt->Fec     := aFakt[i][7]
-                    Fakt->SumBank := aFakt[i][8]
-                    Fakt->Chet    := aFakt[i][9]
-                Next
-            EndIF
-        else // Старая
-            dDataCh := Fakt->DataCh
-            dData   := Fakt->Data
-            nEnt    := Fakt->Ent
-            @ 02,24 say "от "+dtoc(dDataCh)
-            @ 03,02 say "за "+dtoc(dData)
-            @ 03,16 say "в кол-ве" get nKolEkz pict "99" valid nKolEkz >= 0
-            read
-            if LastKey() == K_ESC ; exit ; End
-            S_Ent->(DbSeek(str(nEnt,4)))
-            @ 05,02 say "Код организации "+str(nEnt,4)
-            @ 06,02 say S_Ent->Naim
-            if nKolEkz > 0
-                @ MaxRow()-1,01 say padc(" Следите за печатью",MaxCol()-1) color sset[15]
-                cNaimMec := NaimMec[Month(dData)]
-                BEGIN SEQUENCE
-                    nLen  := 73
-                    nSumma:= 0
-                    cDogovor := S_Ent->Dogovor
-                    dDataDog := S_Ent->DataDog
-                    if Empty(cDogovor) .or. Empty(dDataDog)
-                        S_Open_M(16,07,18,42,sset[32],sset[2])
-                        @ 01,01 say "Договор" get cDogovor
-                        @ 01,20 say "от" get dDataDog pict "@d"
-                        read
-                        if LastKey() <> K_ESC
-                            S_Ent->Dogovor := cDogovor
-                            S_Ent->DataDog := dDataDog
-                        End
-                        S_wCloseSl(S_RanDom()%22+1)
-                    End
-                    set(20,"PRINT")
-                    set(24,"ChFakt.txt")
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say padc("Р А Х У Н О К - Ф А К Т У Р А  N "+alltrim(str(nChFakt,6)),nLen)
-                    @ Prow()+1,00 say padc("вiд "+dtoc(dDataCh),nLen)
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say " ПОСТАЧАЛЬНИК: Первомайське КВУВКГ"
-                    @ Prow()+1,00 say "        р/р 26007300253580 Код 22714272 МФО 351823"
-                    @ Prow()+1,00 say "В ТВБТ 10020/0525 фiлii Харкiвського обласного"
-                    @ Prow()+1,00 say [ управлiння АТ,Ощадбанк'м Первомайський  ]
-                    ////  @ Prow()+1,00 say [Харьковское ГРУ ,ПриватБанк'         ]
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say " ПЛАТНИК: "+S_Ent->Naim
-                    @ Prow()+1,00 say "             "+S_Ent->Naim2
-                    @ Prow()+1,00 say "о/р"+str(S_Ent->Ent,4)+"р/р "+S_Ent->Schet+" Код "+S_Ent->Okpo+" МФО "+S_Ent->Mfo  
-                    ///      @ Prow()+1,00 say "             счет "+S_Ent->Schet+" Код "+S_Ent->Okpo+" МФО "+S_Ent->Mfo
-                    @ Prow()+1,00 say "             "+S_Ent->Bank
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say " Договiр "+cDogovor+" вiд "+dtoc(dDataDog)
-                    @ prow()+1,00 say "-------------------------------------------------------------------------"
-                    @ Prow()+1,00 say "Вимiр| Кiлькiсть   |    Цiна     | Найменування           |     Сумма    |"
-                    @ prow()+1,00 say "-------------------------------------------------------------------------"
-                    While Fakt->NomChF == nChFakt .and. !Fakt->(eof())
-                        @ prow()+1,00 say Left(Fakt->EdIzm,5)+" "+str(Fakt->Kolvo,12)+" "+str(Fakt->Cena,9,6)+" "+;
-                            Left(Fakt->Naim,22)+" "+;
-                            str(Fakt->Summa-Fakt->Ndc-Fakt->Fec-Fakt->SumBank,14,2)
-                        if !Empty(Fakt->Ndc)
-                            @ prow()+1,00 say space(33)+padr("ПДВ ",24)+" "+str(Fakt->Ndc,14,2)
-                        End
-                        if !Empty(Fakt->Fec)
-                            @ prow()+1,00 say space(33)+padr("ПРС ",24)+" "+str(Fakt->Fec,14,2)
-                        End
-                        if !Empty(Fakt->SumBank)
-                            @ prow()+1,00 say space(33)+padr("Услуги банка ",24)+" "+str(Fakt->SumBank,14,2)
-                        End
-                        if !Empty(Fakt->Ndc) .or. !Empty(Fakt->Fec) .or. !Empty(Fakt->SumBank)
-                            @ prow()+1,00 say space(33)+padr("Всьoго ",24)+" "+;
-                                str(Fakt->Summa,14,2)
-                        End
-                        nSumma += Fakt->Summa
-                        Fakt->(DbSkip(1))
-                    End
-                    @ prow()+1,00 say space(33)+padr("Разом за мiсяць",24)+" "+str(nSumma,14,2)
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say " "
-                    aProp := PropisSum(nSumma,59)
-                    @ Prow()+1,00 say "Сума до сплати: "+aProp[1]
-                    for i := 2 to len(aProp)
-                        @ Prow()+1,00 say "                "+aProp[i]
-                    Next
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say "  Начальник                  Котовчихiн В.В. "
-                    @ Prow()+1,00 say " "
-                    @ Prow()+1,00 say "  Гол. бухгалтер                Ужегова  Г.П."
                     @ Prow()+1,00 say " "
                     @ Prow()+1,00 say " "
                     @ Prow()+1,00 say repl("= ",nLen/2)
