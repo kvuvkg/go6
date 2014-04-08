@@ -132,7 +132,7 @@ Static Function MainMenu(data)
 
     omen1:add("Счет-фактура")
     omen1:addPrompt(++i,"Формирование и печать счет-фактуры")
-    omen1:block(i,{||ChFakt()})
+    omen1:block(i,{||ChFaktU()})
 
     omen1:add("Счет-фактура6")
     omen1:addPrompt(++i,"Формирование и печать счет-фактуры6")
