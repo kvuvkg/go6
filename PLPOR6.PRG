@@ -797,6 +797,7 @@ Return ( Ret )
 ////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 Function akt() //  печать akta
+    LOCAL nYear := year(sset[100])
     Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
           GetList := {}, CursorOld := SetCursor(1)
     Local NaimMec := NaimMes()
@@ -855,7 +856,7 @@ Function akt() //  печать akta
                 set(24,"ChFakt.txt")
                 @ Prow()+1,00 say "                         А К Т    "   
                 @ Prow()+1,00 say padc("  ВИКОНАНИХ РОБIT ДО РАХУНКУ N "+alltrim(str(nChFakt,6)),nLen)
-                @ Prow()+1,00 say " м.Первомайський                              " +Left(right(Fakt->Naim,22),10) + "2014.р "
+                @ Prow()+1,00 say " м.Первомайський                              " +Left(right(Fakt->Naim,22),10) + str(nYear,4)+".р "
                 @ Prow()+1,00 say "Ми,що нижче пiдписалися:представник виконавця в особi начальника "
                 @ Prow()+1,00 say "Первомайського комунального виробничого управлiння водопрoвiдно  "
                 @ Prow()+1,00 say "каналiзацiйного господарства Котовчихiн В.В з одного боку,та представника "
@@ -928,6 +929,7 @@ Function akt() //  печать akta
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 Function akt4() //  печать akta
+    LOCAL nYear := year(sset[100])
 Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {}, CursorOld := SetCursor(1)
 Local NaimMec := NaimMes()
@@ -986,7 +988,7 @@ While .t.
  ******        @ Prow()+1,00 say " ПРИЙМАННЯ ВИКОНАНИХ РОБIT за " +Left(right(Fakt->Naim,22),10) + "2014.р "
       @ Prow()+1,00 say padc("  ВИКОНАНИХ РОБIT ДО РАХУНКУ N "+alltrim(str(nChFakt,6)),nLen)
       
-    @ Prow()+1,00 say " м.Первомайський                              " +Left(right(Fakt->Naim,22),10) + "2014.р "
+    @ Prow()+1,00 say " м.Первомайський                              " +Left(right(Fakt->Naim,22),10)+str(nYear,4)+".р "
 //      @ Prow()+1,00 say padc("от "+dtoc(dDataCh),nLen)
          @ Prow()+1,00 say "Ми,що нижче пiдписалися:представник виконавця в особi начальника "
          @ Prow()+1,00 say "Первомайського комунального виробничого управлiння водопрoвiдно  "
@@ -1061,6 +1063,7 @@ return ( Nil )
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 Function akt5() //  печать akta
+    LOCAL nYear := year(sset[100])
 Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {}, CursorOld := SetCursor(1)
 Local NaimMec := NaimMes()
@@ -1119,7 +1122,7 @@ While .t.
  ******        @ Prow()+1,00 say " ПРИЙМАННЯ ВИКОНАНИХ РОБIT за " +Left(right(Fakt->Naim,22),10) + "2014.р "
       @ Prow()+1,00 say padc("  ВИКОНАНИХ РОБIT ДО РАХУНКУ N "+alltrim(str(nChFakt,6)),nLen)
       
-    @ Prow()+1,00 say " м.Первомайський                              " +Left(right(Fakt->Naim,22),10) + "2014.р "
+    @ Prow()+1,00 say " м.Первомайський                              " +Left(right(Fakt->Naim,22),10)+str(nYear,4)+ ".р "
 //      @ Prow()+1,00 say padc("от "+dtoc(dDataCh),nLen)
          @ Prow()+1,00 say "Ми,що нижче пiдписалися:представник виконавця в особi начальника "
          @ Prow()+1,00 say "Первомайського комунального виробничого управлiння водопрoвiдно  "
@@ -1192,6 +1195,7 @@ SetColor(ColorOld)
 return ( Nil )
 //////////////////////////////////////////////////////////////////////////////
 Function akt1() //  печать akta
+    LOCAL nYear := year(sset[100])
 Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {}, CursorOld := SetCursor(1)
 Local NaimMec := NaimMes()
@@ -1248,7 +1252,7 @@ While .t.
          @ Prow()+1,00 say "                         А К Т    "   
       @ Prow()+1,00 say padc("  ВИКОНАНИХ РОБIT ДО РАХУНКУ N "+alltrim(str(nChFakt,6)),nLen)
       
-    @ Prow()+1,00 say " м.Первомайський                           "    +str(day(ddatach),2)+" " +Left(right(Fakt->Naim,22),10) + "2014.р "
+    @ Prow()+1,00 say " м.Первомайський                           "    +str(day(ddatach),2)+" " +Left(right(Fakt->Naim,22),10)+str(nYear,4)+ ".р "
 //      @ Prow()+1,00 say padc("от "+dtoc(dDataCh),nLen)
          @ Prow()+1,00 say "Ми,що нижче пiдписалися:представник виконавця в особi начальника "
          @ Prow()+1,00 say "Первомайського комунального виробничого управлiння водопровiдно  "
@@ -1318,6 +1322,7 @@ While .t.
 ***ferase("ChFakt.txt")
 //////////////////////////////////////////////////////////////////////////////
 Function akt2() //  печать akta
+    LOCAL nYear := year(sset[100])
 Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
       GetList := {}, CursorOld := SetCursor(1)
 Local NaimMec := NaimMes()
@@ -1373,7 +1378,7 @@ While .t.
       ////   @ Prow()+1,00 say " "
          @ Prow()+1,00 say "                         А К Т    "   
       @ Prow()+1,00 say padc("  ВИКОНАНИХ РОБIT ДО РАХУНКУ N "+alltrim(str(nChFakt,6)),nLen)
-    @ Prow()+1,00 say " м.Первомайський                              " +Left(right(Fakt->Naim,22),10) + "2014.р "      
+    @ Prow()+1,00 say " м.Первомайський                              " +Left(right(Fakt->Naim,22),10)+str(nYear,4)+".р "      
 ////    @ Prow()+1,00 say " м.Первомайський                           "    +str(day(ddatach),2)+" " +Left(right(Fakt->Naim,22),10) + "2014.р "
 //      @ Prow()+1,00 say padc("от "+dtoc(dDataCh),nLen)
          @ Prow()+1,00 say "Ми,що нижче пiдписалися:представник виконавця в особi начальника "
