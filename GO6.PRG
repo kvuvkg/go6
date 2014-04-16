@@ -98,7 +98,7 @@ Static Function MainMenu(data)
     omen1:addPrompt(++i,"Ведение остатков по ведомости РАСЧЕТ С ПОСТАВЩИКАМИ")
     omen1:block(i,{||VedOst()})
 
-    omen1:add("Платежное поречение")
+    omen1:add("Платежное поручение")
     omen1:addPrompt(++i,"Формирование и печать платежного поручения")
     omen1:block(i,{||PlPor()})
 
@@ -130,9 +130,9 @@ Static Function MainMenu(data)
     omen1:addPrompt(++i,"Формирование и печать налоговой накладной")
     omen1:block(i,{||PrnNalogG()})
 
-//    omen1:add("Счет-фактура")
-//    omen1:addPrompt(++i,"Формирование и печать счет-фактуры")
-//    omen1:block(i,{||ChFaktU()})
+    omen1:add("Счет-фактура")
+    omen1:addPrompt(++i,"Формирование и печать счет-фактуры")
+    omen1:block(i,{||ChFaktU()})
 
 //    omen1:add("Счет-фактура6")
 //    omen1:addPrompt(++i,"Формирование и печать счет-фактуры6")
