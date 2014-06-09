@@ -321,7 +321,8 @@ Static function OpenBaza()
            DbCreate(cDir+"S_BANK",{ {"ID", "N",03,00},;     // ID банка
                                     {"MFO",  "C",09,00},;   // МФО
                                     {"SCHET","C",14,00},;   // счет
-                                    {"NAIM","C",35,00}})    // наименование
+                                    {"NAIM","C",35,00},;    // наименование
+                                    {"NAIM2","C",35,00}})   // наименование 2
         end
         use (cDir+"S_BANK") new
         if !File(cDir+"S_BANK.NTX")
