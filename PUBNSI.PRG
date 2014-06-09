@@ -7,7 +7,7 @@ FUNCTION VedBank(nKod,pRow,pCol)
     LOCAL GetList := {}
     LOCAL SelectOld := Select()
     LOCAL nDelete := 0
-    LOCAL nID, cMFO, cSchet, cNaim
+    LOCAL nID, cMFO, cSchet, cNaim, cNaim2
 
     IF nKod <> Nil .and. S_BANK->(DbSeek(Str(nKod,3)))
        @ pRow,pCol SAY left(S_BANK->NAIM, 35)
@@ -21,11 +21,13 @@ FUNCTION VedBank(nKod,pRow,pCol)
     S_Open_M(02,27,22,69,,sset[2])
     @ 01,01 say "Код Наименование банка предприятия"
     @ 02,01 say Repl([─],MaxCol()-1)
+    @ MaxRow()-6,01 say Repl([─],MaxCol()-1)
+    @ MaxRow()-5,01 say "Нм 2:"
     @ MaxRow()-4,01 say Repl([─],MaxCol()-1)
     @ MaxRow()-3,01 say "МФО:            Счет:               "
     @ MaxRow()-2,01 say Repl([─],MaxCol()-1)
     @ MaxRow()-1,01 say padc("2печ 3уд 4рег 5корр ",MaxCol()-1) color sset[5]
-    tb := TBrowseDb(03,01,MaxRow()-5,MaxCol()-1)
+    tb := TBrowseDb(03,01,MaxRow()-7,MaxCol()-1)
     tb:AddColumn(TbColumnNew("" ,{|| str(S_BANK->ID,3)+"  "+S_BANK->Naim } ))
     S_BANK->(DbGoTop())
 
@@ -39,6 +41,7 @@ FUNCTION VedBank(nKod,pRow,pCol)
         if nKod <> Nil .and. nKey == K_ENTER ; exit ; end
         if nKey == K_ESC ; exit ; end
         // Выводим дополнительные поля
+        @ MaxRow()-5,6 SAY S_BANK->NAIM2
         @ MaxRow()-3,6 SAY S_BANK->MFO
         @ MaxRow()-3, 23 SAY S_BANK->SCHET
 
@@ -90,19 +93,21 @@ FUNCTION VedBank(nKod,pRow,pCol)
                         M_Inkey(3)
                         break
                     ENDIF
-                    cNaim := space(35)
+                    cNaim2 := cNaim := space(35)
                     @ 03,06 GET cNaim PICT Repl([X],35) VALID !Empty(cNaim)
                     READ
                     if LastKey() == K_ESC ; break ; End
                     cMFO := space(9)
                     cSchet := space(14)
-                    @ MaxRow()-3,6 GET cMFO PICT "#########" VALID !Empty(cMFO)
-                    @ MaxRow()-3, 23 GET cSchet PICT "##############" VALID !Empty(cMFO)
+                    @ MaxRow()-5,  6 GET cNaim2 PICT Repl([X],35)
+                    @ MaxRow()-3,  6 GET cMFO PICT "#########" VALID !Empty(cMFO)
+                    @ MaxRow()-3, 23 GET cSchet PICT "##############" VALID !Empty(cSchet)
                     READ
                     if LastKey() == K_ESC ; break ; End
                     S_BANK->(DbAppend())
                     S_BANK->ID  := nID
                     S_BANK->Naim := cNaim
+                    S_BANK->Naim2 := cNaim2
                     S_BANK->MFO := cMFO
                     S_BANK->SCHET  := cSchet
                 END SEQUENCE
@@ -116,14 +121,17 @@ FUNCTION VedBank(nKod,pRow,pCol)
                 BEGIN SEQUENCE
                     SetCursor(1)
                     cNaim  := S_BANK->Naim
+                    cNaim2 := S_BANK->Naim2
                     cMFO   := S_BANK->MFO
                     cSchet := S_BANK->SCHET
                     @ nRow,06 GET cNaim VALID !Empty(cNaim)
+                    @ MaxRow()-5,6 GET cNaim2
                     @ MaxRow()-3,6 GET cMFO VALID !Empty(cMFO)
-                    @ MaxRow()-3, 23 GET cSchet VALID !Empty(cMFO)
+                    @ MaxRow()-3, 23 GET cSchet VALID !Empty(cSchet)
                     read
                     if LastKey() == K_ESC ; break ; End
                     S_BANK->Naim := cNaim
+                    S_BANK->Naim2 := cNaim2
                     S_BANK->MFO := cMFO
                     S_BANK->SCHET  := cSchet
                 END SEQUENCE
