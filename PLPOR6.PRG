@@ -263,7 +263,10 @@ Function ChFaktU() // формирование и печать счет-фактуры на украинском
                 @ Prow()+1,00 say " "
                 @ Prow()+1,00 say " ПОСТАЧАЛЬНИК: Первомайське КВУВКГ"
                 @ Prow()+1,00 say "          р/р "+S_BANK->Schet+" Код 22714272 МФО "+S_BANK->Mfo
-                @ Prow()+1,00 say "             "+S_BANK->Naim
+                @ Prow()+1,00 say space(14)+S_BANK->Naim
+                IF alltrim(S_BANK->Naim2) != ""
+                    @ Prow()+1,00 say space(14)+S_BANK->Naim2
+                ENDIF
                 @ Prow()+1,00 say " ПЛАТHИК: "+S_Ent->Naim
                 @ Prow()+1,00 say "             "+S_Ent->Naim2
                 @ Prow()+1,00 say "о/р"+str(S_Ent->Ent,4)+"р/р "+S_Ent->Schet+" Код "+S_Ent->Okpo+" МФО "+S_Ent->Mfo
@@ -570,7 +573,10 @@ Function ChFakt() // формирование и печать счет-фактуры на русском
                 @ Prow()+1,00 say " "
                 @ Prow()+1,00 say " ПОСТАВЩИК: Первомайское КПУВКХ"
                 @ Prow()+1,00 say "          р/р "+S_BANK->Schet+" Код 22714272 МФО "+S_BANK->Mfo
-                @ Prow()+1,00 say "             "+S_BANK->Naim
+                @ Prow()+1,00 say space(14)+S_BANK->Naim
+                IF alltrim(S_BANK->Naim2) != ""
+                    @ Prow()+1,00 say space(14)+S_BANK->Naim2
+                ENDIF
                 @ Prow()+1,00 say " ПЛАТЕЛЬШИК: "+S_Ent->Naim
                 @ Prow()+1,00 say "             "+S_Ent->Naim2
                 @ Prow()+1,00 say "лс"+str(S_Ent->Ent,4)+"счет "+S_Ent->Schet+" Код "+S_Ent->Okpo+" МФО "+S_Ent->Mfo
@@ -897,12 +903,15 @@ Function akt() //  печать akta
                    @ Prow()+1,00 say "                "+aProp[i]
                 Next
                 @ Prow()+1,00 say "Замовник претензiй по об'ему якостi та срокам надання послуг не мае"
-                @ Prow()+1,00 say "Виконавець:                        Замовник: "
-                @ Prow()+1,00 say "  Первомайське КВУВКГ                "+S_Ent->Naim
-                @ prow()+1,00 say "                                     "+S_Ent->Naim2
-                @ Prow()+1,00 say "  рахунок "+S_BANK->Schet +"           "+"  рахунок "+S_Ent->Schet
-                @ Prow()+1,00 say "  Код 22714272 МФО "+S_BANK->Mfo+"        "+" Код "+S_Ent->Okpo+" МФО "+S_Ent->Mfo
-                @ Prow()+1,00 say "  "+left(S_BANK->Naim,33)+" "+left(S_Ent->Bank,33)
+                @ Prow()+1,00 say "Виконавець:                          Замовник: "
+                @ Prow()+1,00 say "  Первомайське КВУВКГ                  "+S_Ent->Naim
+                @ prow()+1,00 say "                                       "+S_Ent->Naim2
+                @ Prow()+1,00 say "  рахунок "+S_BANK->Schet +"             "+"  рахунок "+S_Ent->Schet
+                @ Prow()+1,00 say "  Код 22714272 МФО "+S_BANK->Mfo+"          "+" Код "+S_Ent->Okpo+" МФО "+S_Ent->Mfo
+                @ Prow()+1,00 say "  "+S_BANK->Naim+" "+S_Ent->Bank
+                IF alltrim(S_BANK->Naim2) != ""
+                    @ Prow()+1,00 say space(2)+S_BANK->Naim2
+                ENDIF
                 @ Prow()+1,00 say " "
                 @ Prow()+1,00 say "IПН-227142720280 "
                 @ Prow()+1,00 say "СВ-28167035 "
