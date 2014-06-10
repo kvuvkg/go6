@@ -37,14 +37,14 @@ FUNCTION VedBank(nKod,pRow,pCol)
             if ( nKey := m_inkey() ) != 0 ; exit ; end
         end
         nRow := Row()
-        if nKey == 0 ; nKey := m_inkey(0)  ; end
-        if nKod <> Nil .and. nKey == K_ENTER ; exit ; end
-        if nKey == K_ESC ; exit ; end
         // Выводим дополнительные поля
         @ MaxRow()-5,6 SAY S_BANK->NAIM2
         @ MaxRow()-3,6 SAY S_BANK->MFO
         @ MaxRow()-3, 23 SAY S_BANK->SCHET
-
+        
+        if nKey == 0 ; nKey := m_inkey(0)  ; end
+        if nKod <> Nil .and. nKey == K_ENTER ; exit ; end
+        if nKey == K_ESC ; exit ; end
         IF tb:Stable
             DO CASE
             CASE nKey == K_F2  // Печать
