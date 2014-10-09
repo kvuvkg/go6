@@ -163,6 +163,10 @@ Static Function MainMenu(data)
     omen1:addPrompt(++i," печать акта")
     omen1:block(i,{||akt()})
 
+    omen1:add("печать акт Х/Р")
+    omen1:addPrompt(++i," печать акта хозрасчет")
+    omen1:block(i,{||aktHr()})
+
 //    omen1:add("печать актY")
 //    omen1:addPrompt(++i," печать акY")
 //    omen1:block(i,{||akt4()})

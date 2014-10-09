@@ -836,6 +836,8 @@ Function akt() //  печать akta
         @ 05,02 SAY S_BANK->Naim
         @ 06,02 say "Код организации "+str(nEnt,4)
         @ 07,02 say S_Ent->Naim
+        
+        @ 04,09 GET nBank PICTURE "999" valid VedBank(@nBank,05,02)
         @ 08,16 say "в кол-ве" get nKolEkz pict "99" valid nKolEkz >= 0
         READ
         if LastKey() == K_ESC ; exit ; End
@@ -863,6 +865,142 @@ Function akt() //  печать akta
                 @ Prow()+1,00 say "                         А К Т    "   
                 @ Prow()+1,00 say padc("  ВИКОНАНИХ РОБIT ДО РАХУНКУ N "+alltrim(str(nChFakt,6)),nLen)
                 @ Prow()+1,00 say " м.Первомайський                              " +Left(right(Fakt->Naim,22),10) + str(nYear,4)+".р "
+                @ Prow()+1,00 say "Ми,що нижче пiдписалися:представник виконавця в особi начальника "
+                @ Prow()+1,00 say "Первомайського комунального виробничого управлiння водопрoвiдно  "
+                @ Prow()+1,00 say "каналiзацiйного господарства Котовчихiн В.В з одного боку,та представника "
+                @ Prow()+1,00 say "замовника в особi_____________________________________________________ " ////+S_Ent->Naim
+                @ Prow()+1,00 say " _____________________________________________________________________ "////+S_Ent->Naim2
+                @ Prow()+1,00 say "з другого боку,склали дiйсний акт в тому,що згiдно  "
+                @ Prow()+1,00 say "з договором N "+cDogovor+" вiд "+dtoc(dDataDog)
+                @ Prow()+1,00 say "Виконавцем були наданi такi послуги :"
+                @ prow()+1,00 say "-------------------------------------------------------------------------"
+                @ Prow()+1,00 say "Од.  | Кiлькiсть  |    Цiна     | Найменування           |     Сума     |"
+                @ prow()+1,00 say "-------------------------------------------------------------------------"
+                While Fakt->NomChF == nChFakt .and. !Fakt->(eof())
+                    @ prow()+1,00 say Left(Fakt->EdIzm,5)+" "+str(Fakt->Kolvo,12)+" "+str(Fakt->Cena,9,6)+" "+;
+                        Left(Fakt->Naim,22)+" "+;
+                        str(Fakt->Summa-Fakt->Ndc-Fakt->Fec-Fakt->SumBank,14,2)
+                    if !Empty(Fakt->Ndc)
+                        @ prow()+1,00 say space(33)+padr("ПДВ ",24)+" "+str(Fakt->Ndc,14,2)
+                    End
+                    if !Empty(Fakt->Fec)
+                        @ prow()+1,00 say space(33)+padr("ПРС ",24)+" "+str(Fakt->Fec,14,2)
+                    End
+                    if !Empty(Fakt->SumBank)
+                        @ prow()+1,00 say space(33)+padr("Услуги банка ",24)+" "+str(Fakt->SumBank,14,2)
+                    End
+                    if !Empty(Fakt->Ndc) .or. !Empty(Fakt->Fec) .or. !Empty(Fakt->SumBank)
+                        @ prow()+1,00 say space(33)+padr("Всього ",24)+" "+;
+                            str(Fakt->Summa,14,2)
+                    End
+                    nSumma += Fakt->Summa
+                    Fakt->(DbSkip(1))
+                End
+                @ prow()+1,00 say space(33)+padr("Разом за мiсяць",24)+" "+str(nSumma,14,2)
+                @ Prow()+1,00 say " "
+                @ Prow()+1,00 say " "
+                aProp := PropisSum_(nSumma,59)
+                @ Prow()+1,00 say "Сума до сплати: "+aProp[1]
+                for i := 2 to len(aProp)
+                   @ Prow()+1,00 say "                "+aProp[i]
+                Next
+                @ Prow()+1,00 say "Замовник претензiй по об'ему якостi та срокам надання послуг не мае"
+                @ Prow()+1,00 say "Виконавець:                          Замовник: "
+                @ Prow()+1,00 say "  Первомайське КВУВКГ                  "+S_Ent->Naim
+                @ prow()+1,00 say "                                       "+S_Ent->Naim2
+                @ Prow()+1,00 say "  рахунок "+S_BANK->Schet +"             "+"  рахунок "+S_Ent->Schet
+                @ Prow()+1,00 say "  Код 22714272 МФО "+S_BANK->Mfo+"          "+" Код "+S_Ent->Okpo+" МФО "+S_Ent->Mfo
+                @ Prow()+1,00 say "  "+S_BANK->Naim+" "+S_Ent->Bank
+                IF alltrim(S_BANK->Naim2) != ""
+                    @ Prow()+1,00 say space(2)+S_BANK->Naim2
+                ENDIF
+                @ Prow()+1,00 say " "
+                @ Prow()+1,00 say "IПН-227142720280 "
+                @ Prow()+1,00 say "СВ-28167035 "
+                @ Prow()+1,00 say "адреса: м.Первомайський "
+                @ Prow()+1,00 say "вул Комарова,1 "
+                @ Prow()+1,00 say " "
+                @ Prow()+1,00 say "    М П                    Котовчихiн В.В             М П                "
+                @ Prow()+1,00 say " "
+                @ Prow()+1,00 say " "
+                @ Prow()+1,00 say repl("= ",nLen/2)
+                @ prow()+1,00 say ""
+                set(24,"")
+                set(20,"SCREEN")
+                for i := 1 to nKolEkz
+                   if S_TPRN("ChFakt.txt",,1) < 0 ; break ; End
+                Next
+            END SEQUENCE
+        EndIf
+    End
+    ferase("ChFakt.txt")
+    S_wCloseSl(S_RanDom()%22+1)
+    SetColor(ColorOld)
+    return ( Nil )
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+Function aktHr() //  печать akta на хозрасчет
+    LOCAL nYear := year(sset[100])
+    Local ColorOld := SetColor(sset[32]+","+sset[2]+",,,"+sset[32]),;
+          GetList := {}, CursorOld := SetCursor(1)
+    Local NaimMec := NaimMes()
+
+    S_Open_M(07,03,18,41,sset[32],sset[2])
+    While .t.
+        Fakt->(DbGoBottom())
+        nChFakt := 1
+        Scroll(01,01,MaxRow()-1,MaxCol()-1)
+        @ MaxRow()-1,01 say padc(" ESC - конец работы",MaxCol()-1) color sset[15]
+        nEnt := 0
+        nKolEkz := 2
+        @ 02,02 say "N счет-фактуры" get nChFakt pict "999999" valid nChFakt > 0
+        READ
+        if LastKey() == K_ESC ; exit ; End
+        IF !(lFakt := Fakt->(Dbseek(str(nChFakt,6))))
+            S_Beep(1)
+            S_Err({"Данные отсутствуют"})
+            Loop   
+        ENDIF
+        nBank   := Fakt->Bank
+        nEnt    := Fakt->Ent
+        dDataCh := Fakt->DataCh
+        dData   := Fakt->Data
+        S_BANK->(DbSeek(str(nBank,3)))
+        S_Ent->(DbSeek(str(nEnt,4)))
+        @ 02,24 say "от "+dtoc(dDataCh)
+        @ 03,02 say "за "+dtoc(dData)
+        @ 04,02 SAY "В банк "+str(nBank,3)
+        @ 05,02 SAY S_BANK->Naim
+        @ 06,02 say "Код организации "+str(nEnt,4)
+        @ 07,02 say S_Ent->Naim
+        @ 04,09 GET nBank PICTURE "999" valid VedBank(@nBank,05,02)
+        @ 08,16 say "в кол-ве" get nKolEkz pict "99" valid nKolEkz >= 0
+        READ
+        if LastKey() == K_ESC ; exit ; End
+        if nKolEkz > 0
+            @ MaxRow()-1,01 say padc(" Следите за печатью",MaxCol()-1) color sset[15]
+            cNaimMec := NaimMec[Month(dData)]
+            BEGIN SEQUENCE
+                nLen  := 73
+                nSumma:= 0
+                cDogovor := S_Ent->Dogovor
+                dDataDog := S_Ent->DataDog
+                if Empty(cDogovor) .or. Empty(dDataDog)
+                    S_Open_M(16,07,18,42,sset[32],sset[2])
+                    @ 01,01 say "Договор" get cDogovor
+                    @ 01,20 say "от" get dDataDog pict "@d"
+                    read
+                    if LastKey() <> K_ESC
+                      S_Ent->Dogovor := cDogovor
+                      S_Ent->DataDog := dDataDog
+                    End
+                    S_wCloseSl(S_RanDom()%22+1)
+                End
+                set(20,"PRINT")
+                set(24,"ChFakt.txt")
+                @ Prow()+1,00 say "                         А К Т    "   
+                @ Prow()+1,00 say padc("ВИКОНАНИХ РОБIT ДО РАХУНКУ N "+alltrim(str(nChFakt,6)+" за "+cNaimMec+" "+str(Year(dData),4))+" р.",nLen)
+                @ Prow()+1,00 say " м.Первомайський"+padl(dtoc(dDataCh)+" р.", nLen-17)
                 @ Prow()+1,00 say "Ми,що нижче пiдписалися:представник виконавця в особi начальника "
                 @ Prow()+1,00 say "Первомайського комунального виробничого управлiння водопрoвiдно  "
                 @ Prow()+1,00 say "каналiзацiйного господарства Котовчихiн В.В з одного боку,та представника "
