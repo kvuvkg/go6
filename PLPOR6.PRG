@@ -248,7 +248,8 @@ Function ChFaktU() // формирование и печать счет-фактуры на украинском
         nKolEkz := 2
         @ 08,07 SAY "Укажите количество экземпляров--->" GET nKolEkz PICTURE "99"
         READ
-        IF LastKey()<>K_ESC .and. nKolEkz > 0
+        //IF LastKey()<>K_ESC .and. nKolEkz > 0
+        IF LastKey()<>K_ESC
             @ MaxRow()-2,01 say padc(" Следите за печатью",MaxCol()-1) color sset[15]
             cNaimMec := NaimMec[Month(dData)]
             BEGIN SEQUENCE
@@ -388,7 +389,7 @@ Static function PropisSum(Sum,Dlina,Krb,Kop)
             "006шiсть 007сiм 008вiсiм 009дев'ять 010десять "+;
             "011одинадцять 012дванадцять 013тринадцять "+;
             "014чотирнадцять 015п'ятнадцять 016шiстнадцять "+;
-            "017сiмнадцять 018вiсiмнадцять 019девятнадцять "+;
+            "017сiмнадцять 018вiсiмнадцять 019дев'ятнадцять "+;
             "020двадцять 030тридцять 040сорок 050п'ятдесят "+;
             "060шiстдесят 070сiмдесят 080вiсiмдесят "+;
             "090дев'яносто 100сто 200двiстi 300триста 400чотириста "+;
@@ -397,12 +398,18 @@ Static function PropisSum(Sum,Dlina,Krb,Kop)
     Dlina := iif(Dlina=NIL .or. Dlina=0,128,Dlina)
     Krb := if(Krb==Nil,"грв. ",Krb)
     Kop := if(Kop==Nil,"коп. ",Kop)
+    if Sum < 0
+        Prop := "мiнус "
+        Sum := -Sum
+    end
     Sumc  := strzero(Sum,15,2)
     if Sum=0
         Prop := "нуль "
     else
         Adr := "000"
-        Prop := ""
+        if Prop # "мiнус "
+            Prop := ""
+        endIF
         for i=1 to 4
             T := (I-1)*3
             Bank := stuff(Bank,4,11,iif(I=3,"одна 002двi","один 002два"))
@@ -414,7 +421,7 @@ Static function PropisSum(Sum,Dlina,Krb,Kop)
                 if ( Adr#"010" .or. J#2 ) .and. Adr#"000"
                     P := at(Adr,Bank)
                     P += 3
-                    Baza := substr(Bank,P,13)
+                    Baza := substr(Bank,P,15)
                     P := at(" ",Baza)
                     Prop += substr(Baza,1,P)
                     Adr :=  "000"
@@ -702,104 +709,105 @@ Return ( "Прочие" )
 
 //////////////////////////////////////////////////////////////////////////////
 Static function PropisSum_(Sum,Dlina,Krb,Kop)
-local Bank,Sumc,Prop,i,T,J,Kc,P,K,Adr,Baza, Ret := {}
-Bank := "001одна 002двi 003три 004чoтири 005п'ять "+;
-        "006шiсть 007сiм 008вiсiм 009дев'ять 010десять "+;
-        "011одиннадцять 012дванадцять 013тринадцять "+;
-        "014чотирнадцять 015п'ятнадцять 016шiстнадцять "+;
-        "017сiмнадцять 018вiсiмнадцять 019дев'ятнадцять "+;
-        "020двадцять 030тридцять 040сорок 050пя'тьдесят "+;
-        "060шiстьдесят 070сiмдесят 080вiсiмдесят "+;
-        "090дев'яносто 100сто 200двiстi 300триста 400чотириста "+;
-        "500п'ятсот 600шiстсот 700сiмсот 800вiсiмсот "+;
-        "900дев'ятьсот   "
-Dlina := iif(Dlina=NIL .or. Dlina=0,128,Dlina)
-Krb := if(Krb==Nil,"грн. ",Krb)
-Kop := if(Kop==Nil,"коп. ",Kop)
-Prop := ""
-if Sum < 0
-  Prop := "минус "
-  Sum := -Sum
-end
-Sumc  := strzero(Sum,15,2)
-if Sum=0
-   Prop := "ноль "
- else
-   Adr := "000"
-   //Prop := ""
-   for i=1 to 4
-      T := (I-1)*3
-      Bank := stuff(Bank,4,11,iif(I=3,"одна 002две","один 002два"))
-      for J=1 to 3
-        P := T+J
-        Kc := substr(Sumc,P,1)
-        K :=  val(KC)
-        Adr := stuff(Adr,J,1,Kc)
-        if ( Adr#"010" .or. J#2 ) .and. Adr#"000"
-            P := at(Adr,Bank)
-            P += 3
-            Baza := substr(Bank,P,13)
-            P := at(" ",Baza)
-            Prop += substr(Baza,1,P)
-            Adr :=  "000"
+    local Bank,Sumc,Prop,i,T,J,Kc,P,K,Adr,Baza, Ret := {}
+    Bank := "001одна 002двi 003три 004чoтири 005п'ять "+;
+            "006шiсть 007сiм 008вiсiм 009дев'ять 010десять "+;
+            "011одиннадцять 012дванадцять 013тринадцять "+;
+            "014чотирнадцять 015п'ятнадцять 016шiстнадцять "+;
+            "017сiмнадцять 018вiсiмнадцять 019дев'ятнадцять "+;
+            "020двадцять 030тридцять 040сорок 050п'ятьдесят "+;
+            "060шiстьдесят 070сiмдесят 080вiсiмдесят "+;
+            "090дев'яносто 100сто 200двiстi 300триста 400чотириста "+;
+            "500п'ятсот 600шiстсот 700сiмсот 800вiсiмсот "+;
+            "900дев'ятьсот   "
+    Dlina := iif(Dlina=NIL .or. Dlina=0,128,Dlina)
+    Krb := if(Krb==Nil,"грн. ",Krb)
+    Kop := if(Kop==Nil,"коп. ",Kop)
+    Prop := ""
+    if Sum < 0
+        Prop := "мiнус "
+        Sum := -Sum
+    end
+    Sumc := strzero(Sum,15,2)
+    if Sum=0
+        Prop := "ноль "
+    else
+        Adr := "000"
+        if Prop # "мiнус "
+            Prop := ""
+        endIF
+        for i=1 to 4
+            T := (I-1)*3
+            Bank := stuff(Bank,4,11,iif(I=3,"одна 002двi","один 002два"))
+            for J=1 to 3
+                P := T+J
+                Kc := substr(Sumc,P,1)
+                K :=  val(KC)
+                Adr := stuff(Adr,J,1,Kc)
+                if ( Adr#"010" .or. J#2 ) .and. Adr#"000"
+                    P := at(Adr,Bank)
+                    P += 3
+                    Baza := substr(Bank,P,15)
+                    P := at(" ",Baza)
+                    Prop += substr(Baza,1,P)
+                    Adr :=  "000"
+                end
+            next
+            do case
+            case I=3 .and. Sum>=1000  .and. substr(Sumc,7,3)#"000"
+                Prop += "тисяч"
+                if K>0 .and. K<=4 .and. substr(Sumc,8,1)<>"1"
+                    Prop += substr("аиии",K,1)
+                end
+                Prop += " "
+            case I=2 .and. Sum>=1000000 .and. substr(Sumc,4,3)#"000"
+                Prop += "мильйон"
+                if K>=2 .and. K<=4 .and. substr(Sumc,5,1)#"1" .and. ;
+                                                          substr(Sumc,6,1)#"0"
+                    Prop += "а"
+                else
+                    if K>=5 .or. substr(Sumc,5,1)="1" .or. substr(Sumc,6,1)="0"
+                        Prop += "iв"
+                    end
+                end
+                Prop += " "
+            case I=1 .and. Sum>=1000000000
+                Prop += "мiльярд"
+                if K>=2 .and. K<=4 .and. substr(Sumc,2,1)#"1" .and. substr(Sumc,3,1)#"0"
+                    Prop += "а"
+                else
+                    if K>=5 .or. substr(Sumc,2,1)="1" .or. substr(Sumc,3,1)="0"
+                        Prop += "iв"
+                    end
+                end
+                Prop += " "
+             endcase
+        next
+    endIF
+    P := asc(Prop)
+    P := iif(P>=160 .and. P<=175,P-32,P-80)
+    Prop := stuff(Prop,1,1,chr(P))
+    Prop := left(Prop,len(Prop)-1)+"#"+Krb+" "+right(Sumc,2)+"#"+Kop
+    Bank := Adr := ""
+    While ( ( I := at(" ",Prop) ) # 0 )
+        Adr := left(Prop,I)
+        if len(Adr+Bank) < Dlina
+            Bank += Adr
+        else
+            aadd(Ret,padr(StrTran(Bank,"#"," "),Dlina))
+            Bank := Adr
         end
-     next
-     do case
-        case I=3 .and. Sum>=1000  .and. substr(Sumc,7,3)#"000"
-           Prop += "тисяч"
-           if K>0 .and. K<=4 .and. substr(Sumc,8,1)<>"1"
-              Prop += substr("аиии",K,1)
-           end
-           Prop += " "
-        case I=2 .and. Sum>=1000000 .and. substr(Sumc,4,3)#"000"
-           Prop += "миллион"
-           if K>=2 .and. K<=4 .and. substr(Sumc,5,1)#"1" .and. ;
-                                                      substr(Sumc,6,1)#"0"
-              Prop += "а"
-            else
-              if K>=5 .or. substr(Sumc,5,1)="1" .or. substr(Sumc,6,1)="0"
-                 Prop += "ов"
-              end
-           end
-           Prop += " "
-        case I=1 .and. Sum>=1000000000
-           Prop += "миллиард"
-           if K>=2 .and. K<=4 .and. substr(Sumc,2,1)#"1" .and. ;
-                                                substr(Sumc,3,1)#"0"
-              Prop += "а"
-            else
-              if K>=5 .or. substr(Sumc,2,1)="1" .or. substr(Sumc,3,1)="0"
-                 Prop += "ов"
-              end
-           end
-           Prop += " "
-     endcase
-  next
-end
-P := asc(Prop)
-P := iif(P>=160 .and. P<=175,P-32,P-80)
-Prop := stuff(Prop,1,1,chr(P))
-Prop := left(Prop,len(Prop)-1)+"#"+Krb+" "+right(Sumc,2)+"#"+Kop
-Bank := Adr := ""
-While ( ( I := at(" ",Prop) ) # 0 )
-   Adr := left(Prop,I)
-   if len(Adr+Bank) < Dlina
-      Bank += Adr
-     else
-      aadd(Ret,padr(StrTran(Bank,"#"," "),Dlina))
-      Bank := Adr
-   end
-   Prop := substr(Prop,I+1)
-end
-if Len(Bank+Prop) > Dlina
-   aadd(Ret,Padr(StrTran(Bank,"#"," "),Dlina))
-   Bank := ""
-end
-Bank += Prop
-if len(Bank)>0
-   aadd(Ret,padr(StrTran(Bank,"#"," "),Dlina))
-end
-Return ( Ret )
+        Prop := substr(Prop,I+1)
+    end
+    if Len(Bank+Prop) > Dlina
+        aadd(Ret,Padr(StrTran(Bank,"#"," "),Dlina))
+        Bank := ""
+    end
+    Bank += Prop
+    if len(Bank)>0
+        aadd(Ret,padr(StrTran(Bank,"#"," "),Dlina))
+    end
+    Return ( Ret )
 ////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 Function akt() //  печать akta
